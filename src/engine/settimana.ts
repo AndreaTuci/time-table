@@ -20,14 +20,25 @@ import type { Modello } from './types'
  */
 
 /** Ordini di visita dei giorni da provare prima di dichiarare fallita la settimana. */
-const TENTATIVI_MASSIMI = 5
+const TENTATIVI_MASSIMI = 10
 
-/** Quante collocazioni esplorare al massimo per una settimana, prima di arrendersi. */
-const NODI_PER_SETTIMANA = 2_000_000
+/**
+ * Nodi concessi a UN tentativo. Deliberatamente stretto: sui dati reali un tentativo che va a
+ * buon fine ne consuma meno di duecentomila, quindi tutto cio' che sta oltre e' quasi sempre un
+ * ramo condannato. Meglio arrendersi presto e riprovare con un altro ordine dei giorni, che e'
+ * la mossa che scioglie davvero questi blocchi.
+ */
+const NODI_PER_TENTATIVO = 400_000
 
 export interface EsitoSettimana {
   perGiorno: Map<number, BloccoCollocato[]>
   tentativiUsati: number
+}
+
+export interface RisultatoSettimana {
+  esito: EsitoSettimana | null
+  /** Vero se ci si e' fermati per tempo scaduto: la settimana non e' dimostrata impossibile. */
+  scaduto: boolean
 }
 
 /**
@@ -74,9 +85,14 @@ function ordineGiorni(ctx: Contesto, classi: string[], giorni: number[], tentati
     }, 0)
 
   const perDifficolta = [...giorni].sort((a, b) => ricchezza(a) - ricchezza(b) || a - b)
-  // I tentativi successivi ruotano l'ordine, per esplorare spartizioni diverse.
-  const rotazione = tentativo % Math.max(perDifficolta.length, 1)
-  return [...perDifficolta.slice(rotazione), ...perDifficolta.slice(0, rotazione)]
+
+  // Le rotazioni di un solo ordine si esauriscono in fretta: su una settimana di quattro giorni
+  // il quinto tentativo ripeterebbe il primo. Esaurite le rotazioni dell'ordine crescente si
+  // passa a quelle del decrescente, che sono spartizioni davvero diverse.
+  const quanti = Math.max(perDifficolta.length, 1)
+  const base = tentativo < quanti ? perDifficolta : [...perDifficolta].reverse()
+  const rotazione = tentativo % quanti
+  return [...base.slice(rotazione), ...base.slice(0, rotazione)]
 }
 
 export function risolviSettimana(
@@ -84,14 +100,15 @@ export function risolviSettimana(
   ctx: Contesto,
   fabbisogno: Map<string, Residuo>,
   giorniPerClasse: Map<string, number[]>,
-  abitudini: Abitudini
-): EsitoSettimana | null {
-  const classi = [...fabbisogno.keys()].sort()
+  abitudini: Abitudini,
+  scadenza: number
+): RisultatoSettimana {
+  const classi = classiPerPressione(ctx, fabbisogno, giorniPerClasse)
   const tuttiIGiorni = [...new Set([...giorniPerClasse.values()].flat())].sort((a, b) => a - b)
 
   for (let tentativo = 0; tentativo < TENTATIVI_MASSIMI; tentativo++) {
     const daVisitare = ordineGiorni(ctx, classi, tuttiIGiorni, tentativo)
-    const budget: Budget = { nodi: NODI_PER_SETTIMANA }
+    const budget: Budget = { nodi: NODI_PER_TENTATIVO, scadenza, scaduto: false, spesi: 0 }
 
     const dalGiorno = (
       indice: number,
@@ -119,9 +136,12 @@ export function risolviSettimana(
     }
 
     const perGiorno = dalGiorno(0, fabbisogno)
-    if (perGiorno) return { perGiorno, tentativiUsati: tentativo + 1 }
+    if (perGiorno) return { esito: { perGiorno, tentativiUsati: tentativo + 1 }, scaduto: false }
+    // Fermarsi per tempo scaduto non e' la stessa cosa che dimostrare l'impossibilita':
+    // ritentare con un altro ordine dei giorni sarebbe solo altro tempo speso a vuoto.
+    if (budget.scaduto) return { esito: null, scaduto: true }
   }
-  return null
+  return { esito: null, scaduto: false }
 }
 
 function vincoliDelleClassi(
@@ -216,4 +236,34 @@ function residuoAncoraCollocabile(
   }
 
   return true
+}
+
+/**
+ * Le classi si compongono dalla piu' stretta alla piu' larga.
+ *
+ * La pressione di una classe e' il rapporto fra le ore che deve ancora fare e le ore in cui i
+ * suoi titolari sono liberi in quella settimana. Una classe che usa quasi tutta la disponibilita'
+ * dei suoi docenti ha pochissime disposizioni valide: lasciarla per ultima significa scoprire
+ * troppo tardi che le poche caselle che le servivano sono gia' state prese.
+ */
+function classiPerPressione(
+  ctx: Contesto,
+  fabbisogno: Map<string, Residuo>,
+  giorniPerClasse: Map<string, number[]>
+): string[] {
+  const pressione = new Map<string, number>()
+  for (const [classe, residuo] of fabbisogno) {
+    const giorni = giorniPerClasse.get(classe) ?? []
+    let richieste = 0
+    let offerte = 0
+    for (const [materia, durate] of residuo) {
+      richieste += durate.reduce((a, b) => a + b, 0)
+      const titolare = ctx.titolarePer.get(chiave(classe, materia))
+      if (titolare) offerte += oreDocenteNeiGiorni(ctx, titolare.docente, giorni)
+    }
+    pressione.set(classe, offerte === 0 ? Number.POSITIVE_INFINITY : richieste / offerte)
+  }
+  return [...fabbisogno.keys()].sort(
+    (a, b) => (pressione.get(b) ?? 0) - (pressione.get(a) ?? 0) || a.localeCompare(b)
+  )
 }
