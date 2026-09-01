@@ -31,15 +31,15 @@ const tallest = computed(() => Math.max(...props.weeks.map((w) => w.hours), 1))
         v-for="week in weeks"
         :key="week.index"
         class="group relative flex-1 border-b-2 pt-1 transition-colors"
-        :class="week.index === current ? 'border-signal' : 'border-transparent hover:border-line-strong'"
+        :class="week.index === current ? 'border-signal' : 'border-transparent hover:border-signal/50'"
         :aria-label="`Settimana ${week.index + 1}, ${week.hours} ore in ${week.days} giorni`"
         :aria-current="week.index === current ? 'true' : undefined"
         @click="emit('select', week.index)"
       >
         <span
-          class="block w-full"
+          class="block w-full transition-colors"
           :style="{ height: `${Math.round((week.hours / tallest) * 28) + 2}px` }"
-          :class="week.index === current ? 'bg-signal' : 'bg-rail/50 group-hover:bg-rail'"
+          :class="week.index === current ? 'bg-signal' : 'bg-rail/40 group-hover:bg-signal/60'"
         />
         <span
           class="mt-1 block font-mono text-[9px]"
