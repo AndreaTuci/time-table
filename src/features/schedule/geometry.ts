@@ -10,6 +10,14 @@ export const ROW_HEIGHT_REM = 2.5
 export const BREAK_HEIGHT_REM = 0.85
 export const DAY_HEADER_REM = 1.75
 export const CLASS_HEADER_REM = 1.5
+export const FOOTER_REM = 1.25
+
+/**
+ * Width below which a class column stops being readable and the board starts scrolling instead.
+ * Three classes across five days means fifteen of these side by side, so the figure has to be
+ * modest: at 7.5rem the board was ~1860px and scrolled on any normal laptop.
+ */
+export const COLUMN_MIN_REM = 5
 
 export interface RailLayout {
   /** Usable slot indices, in order. Excludes the lunch slot. */
@@ -51,3 +59,10 @@ export function blockRow(layout: RailLayout, position: number, length: number): 
 }
 
 export const BOARD_HEADER_REM = DAY_HEADER_REM + CLASS_HEADER_REM
+
+/** Height of the hour grid plus its footer: a closed day has to match it exactly. */
+export function bodyHeightRem(layout: RailLayout): number {
+  const rows = layout.usable.length * ROW_HEIGHT_REM
+  const hasBreak = layout.usable.length > layout.morningCount
+  return rows + (hasBreak ? BREAK_HEIGHT_REM : 0) + FOOTER_REM
+}
