@@ -77,6 +77,22 @@ body {
   outline-offset: 2px;
 }
 
+/*
+ * Tailwind v4's preflight sets `cursor: default` on buttons. Restoring the pointer here, once,
+ * beats remembering a utility class on every control — and a control that does not feel
+ * clickable is not discovered at all.
+ */
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']),
+label[for],
+summary {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
