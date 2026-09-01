@@ -1,0 +1,217 @@
+{
+  "insegnanti": [
+    {
+      "pino palloncino": {
+        "materia": "CULTURA GENERALE",
+        "disponibilita": {
+          "lun": {
+            "08.00-09.00": true,
+            "09.00-10.00": true,
+            "10.00-11.00": true,
+            "11.00-12.00": true,
+            "12.00-13.00": true,
+            "13.00-14.00": false,
+            "14.00-15.00": false,
+            "15.00-16.00": true,
+            "16.00-17.00": true,
+            "17.00-18.00": true,
+            "18.00-19.00": true
+          },
+          "mar": {
+            "08.00-09.00": false,
+            "09.00-10.00": false,
+            "10.00-11.00": false,
+            "11.00-12.00": false,
+            "12.00-13.00": false,
+            "13.00-14.00": false,
+            "14.00-15.00": false,
+            "15.00-16.00": false,
+            "16.00-17.00": false,
+            "17.00-18.00": false,
+            "18.00-19.00": false
+          },
+          "mer": {
+            "08.00-09.00": true,
+            "09.00-10.00": true,
+            "10.00-11.00": true,
+            "11.00-12.00": true,
+            "12.00-13.00": false,
+            "13.00-14.00": false,
+            "14.00-15.00": false,
+            "15.00-16.00": true,
+            "16.00-17.00": true,
+            "17.00-18.00": true,
+            "18.00-19.00": true
+          },
+          "gio": {
+            "08.00-09.00": false,
+            "09.00-10.00": false,
+            "10.00-11.00": false,
+            "11.00-12.00": false,
+            "12.00-13.00": true,
+            "13.00-14.00": true,
+            "14.00-15.00": true,
+            "15.00-16.00": true,
+            "16.00-17.00": true,
+            "17.00-18.00": true,
+            "18.00-19.00": true
+          },
+          "ven": {
+            "08.00-09.00": true,
+            "09.00-10.00": true,
+            "10.00-11.00": true,
+            "11.00-12.00": true,
+            "12.00-13.00": true,
+            "13.00-14.00": false,
+            "14.00-15.00": false,
+            "15.00-16.00": false,
+            "16.00-17.00": false,
+            "17.00-18.00": false,
+            "18.00-19.00": false
+          }
+        }
+      }
+    },
+    {
+      "carla capecchi": {
+        "materia": "CULTURA TECNICA",
+        "disponibilita": {
+          "lun": {
+            "08.00-09.00": false,
+            "09.00-10.00": false,
+            "10.00-11.00": false,
+            "11.00-12.00": false,
+            "12.00-13.00": false,
+            "13.00-14.00": false,
+            "14.00-15.00": false,
+            "15.00-16.00": true,
+            "16.00-17.00": true,
+            "17.00-18.00": true,
+            "18.00-19.00": true
+          },
+          "mar": {
+            "08.00-09.00": true,
+            "09.00-10.00": true,
+            "10.00-11.00": true,
+            "11.00-12.00": false,
+            "12.00-13.00": false,
+            "13.00-14.00": false,
+            "14.00-15.00": false,
+            "15.00-16.00": false,
+            "16.00-17.00": false,
+            "17.00-18.00": false,
+            "18.00-19.00": false
+          },
+          "mer": {
+            "08.00-09.00": true,
+            "09.00-10.00": true,
+            "10.00-11.00": true,
+            "11.00-12.00": true,
+            "12.00-13.00": false,
+            "13.00-14.00": false,
+            "14.00-15.00": false,
+            "15.00-16.00": true,
+            "16.00-17.00": true,
+            "17.00-18.00": true,
+            "18.00-19.00": true
+          },
+          "gio": {
+            "08.00-09.00": false,
+            "09.00-10.00": false,
+            "10.00-11.00": false,
+            "11.00-12.00": false,
+            "12.00-13.00": true,
+            "13.00-14.00": true,
+            "14.00-15.00": false,
+            "15.00-16.00": false,
+            "16.00-17.00": false,
+            "17.00-18.00": false,
+            "18.00-19.00": false
+          },
+          "ven": {
+            "08.00-09.00": false,
+            "09.00-10.00": false,
+            "10.00-11.00": false,
+            "11.00-12.00": false,
+            "12.00-13.00": false,
+            "13.00-14.00": false,
+            "14.00-15.00": false,
+            "15.00-16.00": false,
+            "16.00-17.00": false,
+            "17.00-18.00": false,
+            "18.00-19.00": false
+          }
+        }
+      }
+    }
+  ],
+  "aule": {
+    "AULA A": "AULA",
+    "AULA B": "AULA",
+    "AULA C": "AULA",
+    "AULA D": "LAB-ELETTRICO",
+    "AULA E": "LAB-IDRAULICO",
+    "AULA F": "LAB-INFORMATICO"
+  },
+  "corsi": {
+    "CULTURA GENERALE": {
+      "ORE TOTALI": 100,
+      "TIPO AULA": "AULA"
+    },
+    "MATEMATICA": {
+      "ORE TOTALI": 120,
+      "TIPO AULA": "AULA"
+    },
+    "CULTURA TECNICA": {
+      "ORE TOTALI": 100,
+      "TIPO AULA": "AULA"
+    },
+    "INFORMATICA": {
+      "ORE TOTALI": 80,
+      "TIPO AULA": "LAB-INFORMATICO"
+    },
+    "LABORATORIO ELETTRICO": {
+      "ORE TOTALI": 60,
+      "TIPO AULA": "LAB-ELETTRICO"
+    },
+    "LABORATORIO IDRAULICO": {
+      "ORE TOTALI": 60,
+      "TIPO AULA": "LAB-IDRAULICO"
+    }
+  },
+  "classi": {
+    "IDRA": {
+      "data_inizio": "2024-09-01",
+      "data_fine": "2025-06-30",
+      "materie": [
+        "CULTURA GENERALE",
+        "MATEMATICA",
+        "CULTURA TECNICA",
+        "INFORMATICA",
+        "LABORATORIO IDRAULICO"
+      ]
+    },
+    "ELE": {
+      "data_inizio": "2024-09-01",
+      "data_fine": "2025-06-30",
+      "materie": [
+        "CULTURA GENERALE",
+        "MATEMATICA",
+        "CULTURA TECNICA",
+        "INFORMATICA",
+        "LABORATORIO ELETTRICO"
+      ]
+    },
+    "ELE2": {
+      "data_inizio": "2024-09-01",
+      "data_fine": "2025-06-30",
+      "materie": [
+        "CULTURA GENERALE",
+        "MATEMATICA",
+        "CULTURA TECNICA",
+        "INFORMATICA",
+        "LABORATORIO ELETTRICO"
+      ]
+    }
+  }
+}
