@@ -28,6 +28,7 @@ export interface Sostituto {
 
 export interface Recupero {
   data: string
+  indiceGiorno: number
   slot: number[]
   aula: string
   /** Quanti giorni dopo la lezione persa: il piu' vicino e' quasi sempre il migliore. */
@@ -160,6 +161,10 @@ function recuperiPer(
 
     for (const posizioni of posizioniContigue(occupate, durata, modello.slotUtili.length)) {
       const slot = posizioni.map((p) => modello.slotUtili[p])
+      // Stessa regola del motore: una lezione recuperata non scavalca la pausa pranzo. Tolta la
+      // pausa dagli slot utili, le 12-13 e le 14-15 sono adiacenti nell'elenco ma non nell'ora,
+      // e un recupero collocato li' sarebbe due ore isolate spacciate per una lezione.
+      if (slot.some((s, i) => i > 0 && s !== slot[i - 1] + 1)) continue
       const docenteLibero = slot.every(
         (s) => docente.disponibile[giorno.indiceGiorno][s] && !indice.docenteOccupato.has(`${giorno.data}|${s}|${docente.id}`)
       )
@@ -169,6 +174,7 @@ function recuperiPer(
 
       recuperi.push({
         data: giorno.data,
+        indiceGiorno: giorno.indiceGiorno,
         slot,
         aula,
         giorniDiDistanza: giorniUtili.filter((g) => g.data > blocco.data && g.data <= giorno.data).length,
