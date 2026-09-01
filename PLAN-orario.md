@@ -7,7 +7,7 @@
 - [x] Phase P3 — Scaffold UI — grezza, **sostituita da P4**
 - [x] Phase P4 — Design system "Quadro" + tavola a tre classi — *verificata dall'utente*
 - [~] Phase P4.1 — Tema chiaro e filtro materie — *in attesa di verifica*
-- [ ] Phase P5 — Pagine entita': docenti, corsi, classi, aule (sola lettura)
+- [~] Phase P5 — Pagine entita': docenti, corsi, classi, aule (sola lettura) — *da verificare*
 - [ ] Phase P6 — Editing su localStorage: disponibilita' cliccabili, date, rigenerazione
 - [ ] Phase P7 — Export CSV
 - [ ] Phase P8 — Assenze, sostituzioni e recuperi in interfaccia
@@ -128,14 +128,34 @@ Correzioni chieste dall'utente dopo la verifica di P4.
 - [x] `TimetableBoard.vue`, `ClassColumn.vue`, `App.vue` — filtro collegato.
 
 ## Phase P5 — Pagine entita' (sola lettura)
-**Goal**: la demo smette di essere una schermata sola. Si naviga fra orario, docenti, corsi,
-classi e aule, e ogni entita' mostra visivamente cio' che la riguarda.
-- [ ] Navigazione a tab.
-- [ ] Docente: griglia settimanale con gli slot accesi/spenti secondo la disponibilita', piu' le
-      classi e le materie che segue e il carico settimanale reale.
-- [ ] Corso: ore totali, tipo aula, blocco, tetto giornaliero, chi lo insegna.
-- [ ] Classe: finestra, aula casa, materie, avanzamento.
-- [ ] Aula: tipo e occupazione settimanale.
+**Goal**: la demo smette di essere una schermata sola.
+
+### Scelte di struttura
+- Le pagine leggono il **modello normalizzato** prodotto dal loader del motore, non il JSON
+  grezzo: interfaccia e solver vedono gli stessi dati, con gli stessi valori di default.
+  In P6 bastera' rendere scrivibile quella sorgente.
+- Lo stato del generatore vive **a livello di modulo**: ogni pagina legge lo stesso orario. Uno
+  generato per vista sarebbe non solo sprecato ma potenzialmente *diverso*, perche' la ricerca
+  ha pareggi da sciogliere.
+- Routing sull'hash dell'URL, **senza vue-router**: una demo si condivide come link e deve
+  sopravvivere a un reload. `hashchange` fa esattamente questo in una dozzina di righe.
+- Docenti e aule condividono la stessa griglia settimanale: e' la stessa domanda, e un'aula e'
+  semplicemente una risorsa i cui slot sono tutti aperti.
+
+### Files
+- [x] `src/composables/useHashRoute.ts` — routing sull'hash.
+- [x] `src/data/source.ts` — sorgente unica, modello normalizzato piu' JSON grezzo per il worker.
+- [x] `src/features/shell/AppTabs.vue` — selettore di pannello.
+- [x] `src/features/insights/workload.ts` — carico docenti e uso settimanale degli slot.
+- [x] `src/features/insights/WeekUsageGrid.vue` — griglia a **tre stati**: chiuso, aperto e libero,
+      aperto e occupato. Lo slot libero e' capacita' inutilizzata, ed e' quello che spiega
+      perche' il solver aveva margine.
+- [x] `src/features/teachers/TeachersPage.vue` — elenco con saturazione, disponibilita', incarichi.
+- [x] `src/features/courses/CoursesPage.vue` — le quattro cifre che decidono come una materia cade.
+- [x] `src/features/classes/ClassesPage.vue` — finestra, avanzamento, ultima lezione effettiva.
+- [x] `src/features/rooms/RoomsPage.vue` — occupazione settimanale per aula.
+- [x] `src/features/schedule/SchedulePage.vue` — estratta da `App.vue`.
+- [x] `src/App.vue` — ridotta a guscio: 73 righe.
 
 ## Phase P6 — Editing su localStorage
 **Goal**: chi guarda la demo puo' cambiare i dati e rigenerare l'orario.
