@@ -20,7 +20,9 @@ const MAX_ORE_GIORNO_LABORATORIO = 8
 
 type Grezzo = Record<string, any>
 
-function slugDi(nome: string): string {
+/** Identificatore stabile di una persona a partire dal nome. Esportato perche' l'editor
+ * deve ritrovare la voce grezza corrispondente a un docente del modello. */
+export function slugDi(nome: string): string {
   return nome.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 }
 
@@ -41,7 +43,12 @@ function slotDi(grezzo: Grezzo): string[] {
   return Object.keys(primoGiorno)
 }
 
-function normalizzaDocenti(grezzo: Grezzo, slot: string[], problemi: string[]): Docente[] {
+function normalizzaDocenti(
+  grezzo: Grezzo,
+  slot: string[],
+  slotUtili: number[],
+  problemi: string[]
+): Docente[] {
   const insegnanti = grezzo.insegnanti
   if (!Array.isArray(insegnanti)) {
     problemi.push('`insegnanti` mancante o non e un elenco')
@@ -69,7 +76,12 @@ function normalizzaDocenti(grezzo: Grezzo, slot: string[], problemi: string[]): 
       nome,
       materie,
       disponibile,
-      oreSettimanaliDisponibili: disponibile.flat().filter(Boolean).length,
+      // Solo gli slot realmente utilizzabili: un docente disponibile all'ora di pranzo non e'
+      // disponibile per un'ora in piu', perche' in quell'ora non si fa lezione.
+      oreSettimanaliDisponibili: disponibile.reduce(
+        (totale, giorno) => totale + slotUtili.filter((s) => giorno[s]).length,
+        0
+      ),
     }
   })
 }
@@ -133,11 +145,12 @@ export function caricaModello(grezzo: Grezzo, chiusure: Chiusura[] = []): Modell
   const pausaPranzo = grezzo.configurazione?.pausa_pranzo ?? PAUSA_PRANZO_DEFAULT
 
   const aule = normalizzaAule(grezzo, problemi)
+  const slotUtili = slot.map((_, i) => i).filter((i) => slot[i] !== pausaPranzo)
   const modello: Modello = {
     slot,
-    slotUtili: slot.map((_, i) => i).filter((i) => slot[i] !== pausaPranzo),
+    slotUtili,
     pausaPranzo,
-    docenti: normalizzaDocenti(grezzo, slot, problemi),
+    docenti: normalizzaDocenti(grezzo, slot, slotUtili, problemi),
     aule,
     materie: normalizzaMaterie(grezzo, problemi),
     classi: normalizzaClassi(grezzo, aule, problemi),
