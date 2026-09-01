@@ -1,6 +1,7 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { caricaModello, ErroreDati, slugDi } from '@/engine/loader'
 import { GIORNI, type Chiusura, type Modello } from '@/engine/types'
+import { chiaveVariazione, type Variazione } from '@/features/absences/variazioni'
 import defaultDataset from '../../data/dataset-demo.json'
 import defaultClosures from '../../data/chiusure.json'
 
@@ -80,6 +81,50 @@ export function datasetForWorker(): { data: Dataset; closures: Chiusura[] } {
 export function resetToExample(): void {
   for (const key of Object.keys(dataset)) delete dataset[key]
   Object.assign(dataset, clone(defaultDataset))
+  variazioni.splice(0)
+}
+
+// ---- Ritocchi all'orario generato ------------------------------------------------------------
+
+/**
+ * Sostituzioni e recuperi applicati a mano. Vivono FUORI dal dataset di proposito: non cambiano
+ * cio' che il generatore ha letto, quindi non rendono l'orario "vecchio" e non finiscono nei CSV
+ * dei dati di ingresso. Sono una correzione dell'esito, non una modifica alla domanda.
+ */
+const CHIAVE_VARIAZIONI = 'quadro-orario/variazioni/v1'
+
+function leggiVariazioni(): Variazione[] {
+  try {
+    const salvate = window.localStorage.getItem(CHIAVE_VARIAZIONI)
+    return salvate ? (JSON.parse(salvate) as Variazione[]) : []
+  } catch {
+    storageAvailable.value = false
+    return []
+  }
+}
+
+export const variazioni = reactive<Variazione[]>(leggiVariazioni())
+
+watch(
+  variazioni,
+  () => {
+    try {
+      window.localStorage.setItem(CHIAVE_VARIAZIONI, JSON.stringify(variazioni))
+    } catch {
+      storageAvailable.value = false
+    }
+  },
+  { deep: true }
+)
+
+export function aggiungiVariazione(variazione: Variazione): void {
+  const chiave = chiaveVariazione(variazione)
+  if (variazioni.some((v) => chiaveVariazione(v) === chiave)) return
+  variazioni.push(variazione)
+}
+
+export function rimuoviVariazione(indice: number): void {
+  variazioni.splice(indice, 1)
 }
 
 /** True once the data differs from the shipped example. Drives the "restore" affordance. */
