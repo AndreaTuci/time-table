@@ -6,6 +6,7 @@ import { railLayout } from '@/features/schedule/geometry'
 import { personName } from '@/lib/subjects'
 import type { ScheduleResult } from '@/features/schedule/types'
 import type { Modello } from '@/engine/types'
+import { toggleAvailability } from '@/data/store'
 
 const props = defineProps<{
   model: Modello
@@ -24,6 +25,11 @@ const teacher = computed(() => props.model.docenti.find((d) => d.id === selected
 const usage = computed(() =>
   weeklyUsage(props.result.lezioni.filter((lesson) => lesson.docente === selected.value))
 )
+
+/** Clicking a cell flips the teacher's contract, not the timetable: the schedule goes stale. */
+function flip(dayIndex: number, slotIndex: number) {
+  toggleAvailability(selected.value, dayIndex, props.model.slot[slotIndex])
+}
 
 /** Share of the declared availability that the schedule actually uses. */
 const saturation = (oreSettimanali: number, oreDisponibili: number) =>
@@ -95,10 +101,13 @@ const saturation = (oreSettimanali: number, oreDisponibili: number) =>
         :usage="usage"
         :colours="colours"
         :weeks="weeks"
+        editable
+        @toggle="flip"
       />
 
       <p class="font-mono text-[10px] text-ink-soft">
-        tratteggio = non disponibile · bianco = disponibile ma libero · colorato = lezione
+        tratteggio = non disponibile · bianco = disponibile ma libero · colorato = lezione ·
+        <span class="text-ink">clicca una casella per cambiare la disponibilità</span>
       </p>
     </section>
   </div>

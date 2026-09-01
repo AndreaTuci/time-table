@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import CoverageGauge from '@/features/schedule/CoverageGauge.vue'
+import { setClassWindow } from '@/data/store'
 import { personName, shortDate } from '@/lib/subjects'
 import type { ScheduleResult } from '@/features/schedule/types'
 import type { Modello } from '@/engine/types'
@@ -41,8 +42,26 @@ const cards = computed(() =>
       </div>
 
       <dl class="grid grid-cols-2 gap-x-3 gap-y-1.5 border-y border-line py-2 font-mono text-[10px]">
-        <dt class="text-ink-soft">finestra</dt>
-        <dd>{{ shortDate(card.dataInizio) }} → {{ shortDate(card.dataFine) }}</dd>
+        <dt class="text-ink-soft">dal</dt>
+        <dd>
+          <input
+            type="date"
+            class="w-full border border-line bg-panel px-1 py-0.5 font-mono text-[10px] transition-colors hover:border-line-strong focus:border-signal"
+            :value="card.dataInizio"
+            :max="card.dataFine"
+            @change="setClassWindow(card.id, ($event.target as HTMLInputElement).value, card.dataFine)"
+          />
+        </dd>
+        <dt class="text-ink-soft">al</dt>
+        <dd>
+          <input
+            type="date"
+            class="w-full border border-line bg-panel px-1 py-0.5 font-mono text-[10px] transition-colors hover:border-line-strong focus:border-signal"
+            :value="card.dataFine"
+            :min="card.dataInizio"
+            @change="setClassWindow(card.id, card.dataInizio, ($event.target as HTMLInputElement).value)"
+          />
+        </dd>
         <dt class="text-ink-soft">giorni utili</dt>
         <dd>{{ card.giorniUtili }}</dd>
         <dt class="text-ink-soft">ore</dt>

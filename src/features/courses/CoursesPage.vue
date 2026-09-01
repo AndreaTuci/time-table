@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { NumberField } from '@/components/ui/number-field'
+import { setSubjectNumber } from '@/data/store'
 import { personName } from '@/lib/subjects'
 import type { ScheduleResult } from '@/features/schedule/types'
 import type { Modello } from '@/engine/types'
@@ -51,13 +53,35 @@ const rows = computed(() =>
               <span class="font-semibold">{{ row.id }}</span>
             </span>
           </td>
-          <td class="px-3 py-2 font-mono">{{ row.oreTotali }}</td>
+          <td class="px-3 py-2">
+            <NumberField
+              :model-value="row.oreTotali"
+              :min="1"
+              suffix="h"
+              @update:model-value="setSubjectNumber(row.id, 'ore_totali', $event)"
+            />
+          </td>
           <td class="px-3 py-2 font-mono text-ink-soft">
             {{ row.classi.join(' ') }} = {{ row.oreComplessive }}h
           </td>
           <td class="px-3 py-2 font-mono text-ink-soft">{{ row.tipoAula }}</td>
-          <td class="px-3 py-2 font-mono">{{ row.bloccoOre }}h</td>
-          <td class="px-3 py-2 font-mono">{{ row.maxOreGiorno }}h</td>
+          <td class="px-3 py-2">
+            <NumberField
+              :model-value="row.bloccoOre"
+              :min="1"
+              :max="row.maxOreGiorno"
+              suffix="h"
+              @update:model-value="setSubjectNumber(row.id, 'blocco_ore', $event)"
+            />
+          </td>
+          <td class="px-3 py-2">
+            <NumberField
+              :model-value="row.maxOreGiorno"
+              :min="row.bloccoOre"
+              suffix="h"
+              @update:model-value="setSubjectNumber(row.id, 'max_ore_giorno', $event)"
+            />
+          </td>
           <td class="px-3 py-2 font-mono">
             {{ row.titolari.map((t) => `${t.classe}: ${personName(t.docente)}`).join(' · ') }}
           </td>
