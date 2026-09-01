@@ -126,3 +126,23 @@ Correzioni:
 Conseguenza sulla ricerca: le giornate ammesse si riducono a mattina+pomeriggio di lunghezza
 pari — 4+2, 2+4, 4+4 ore. Restano contigue e compatibili con le 32-34 ore settimanali, ma il
 motore ha meno margine di manovra.
+
+## Phase P6.1 — diagnostica
+
+### Il difetto che l'ha motivata
+L'utente ha ristretto la finestra di IDRA a un mese. Risultato: nessun orario per 5 settimane e
+un solo messaggio, "5 settimane aperte". Due difetti in uno: il messaggio non diceva quale classe
+ne' perche', e le settimane si risolvono per tutte le classi insieme, quindi IDRA infattibile
+toglieva l'orario anche a ELE ed ELE2, che erano pianificabili.
+
+### Regola adottata per i controlli
+Solo condizioni **necessarie dimostrabili**. Un falso positivo — dichiarare impossibile un orario
+che il motore avrebbe risolto — e' peggio di nessun controllo. Il test che lo protegge e' il
+primo di `diagnostica.test.ts`: sul dataset di esempio la diagnostica deve restituire un elenco
+VUOTO.
+
+### Nota sul panel di agenti
+Il panel lanciato per derivare questi controlli e' stato fermato: i suoi agenti verificatori
+scrivevano i controesempi come file dentro il repo (`_contro.ts`, `contro4.test.ts`,
+`zz-attacco*.test.ts`, `data/contro-esempio-4.json`). Rimossi. I controlli sono stati progettati
+direttamente. L'utente ha inoltre stabilito che **i panel non si lanciano di iniziativa**.

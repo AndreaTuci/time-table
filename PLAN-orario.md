@@ -8,7 +8,8 @@
 - [x] Phase P4 — Design system "Quadro" + tavola a tre classi — *verificata dall'utente*
 - [~] Phase P4.1 — Tema chiaro e filtro materie — *in attesa di verifica*
 - [x] Phase P5 — Pagine entita': docenti, corsi, classi, aule (sola lettura)
-- [~] Phase P6 — Editing su localStorage — *da verificare*
+- [x] Phase P6 — Editing su localStorage
+- [~] Phase P6.1 — Diagnostica pre-volo e isolamento della classe impossibile — *da verificare*
 - [ ] Phase P7 — Export CSV
 - [ ] Phase P8 — Assenze, sostituzioni e recuperi in interfaccia
 - [ ] Phase P9 — Deploy Cloudflare Pages + README
@@ -171,6 +172,26 @@ Modificabile (deciso con l'utente): **disponibilita' docenti**, **date di inizio
 - [x] Banda di avviso quando l'orario a schermo e' stato generato prima delle modifiche.
 - [x] `src/data/store.test.ts` — 6 test sullo store.
 - [x] `src/engine/loader.test.ts` — 4 test, fra cui quello sul conteggio delle ore disponibili.
+
+## Phase P6.1 — Diagnostica pre-volo
+**Goal**: quando i dati non permettono un orario, il tool lo dice PRIMA di cercare, con numeri e
+con un rimedio; e una classe impossibile non trascina con se' le altre.
+
+### Il principio, non negoziabile
+Ogni controllo e' una **condizione necessaria dimostrabile**: se scatta, l'orario non esiste.
+Dichiarare impossibile un orario risolvibile sarebbe peggio che tacere, perche' toglierebbe a chi
+guarda l'unico motivo per fidarsi. Dove un limite piu' stretto sarebbe stato solo probabile si e'
+scelto quello piu' largo e certo: qualche istanza impossibile passera' inosservata e la scoprira'
+la ricerca. E' il verso giusto in cui sbagliare.
+
+- [x] `src/engine/diagnostica.ts` — capienza della classe, materia senza docenti, blocco piu'
+      lungo di ogni finestra libera, tipo di aula inesistente, finestra senza giorni utili.
+- [x] `src/engine/solver.ts` — le classi bloccate escono PRIMA della ricerca: prima una classe
+      impossibile faceva fallire la settimana anche a quelle sane.
+- [x] `src/features/shell/DiagnosticsPanel.vue` — pannello in cima, ogni riga con il suo rimedio.
+- [x] `src/features/classes/ClassesPage.vue` — la classe esclusa e' marcata "non pianificabile".
+- [x] `src/engine/diagnostica.test.ts` — 7 test, fra cui **l'assenza di falsi positivi** sul
+      dataset di esempio e la garanzia che una classe impossibile non danneggi le altre.
 
 ## Phase P7 — Export CSV
 **Il documento principale sono i DATI A MONTE**, non l'orario: l'utente vuole mostrare cosa e'
