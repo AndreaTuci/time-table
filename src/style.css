@@ -1,0 +1,108 @@
+@import 'tailwindcss';
+
+/*
+ * Design direction: "Quadro".
+ *
+ * In Italian "quadro orario" is the administrative name for a weekly timetable, and "quadro
+ * elettrico" is the switchboard cabinet these students learn to wire in the LAB-ELETTRICO.
+ * The interface lives inside that double meaning: the page is painted sheet metal (RAL 7035),
+ * the hour column is a DIN rail carrying numbered terminals, and the lunch break is a physical
+ * interruption of that rail rather than a grey row.
+ *
+ * The interface owns no saturated hue. Every strong colour on screen belongs to a subject, so
+ * colour always carries data. That is also why subject hues barely shift between themes: they
+ * are an identity, not a mood.
+ */
+@theme {
+  --font-display: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', monospace;
+
+  /* Cabinet */
+  --color-frame: #d3d8d3;
+  --color-panel: #f7f8f6;
+  --color-sunken: #e7eae6;
+  --color-rail: #7c857e;
+
+  /* Ink */
+  --color-ink: #16211f;
+  --color-ink-soft: #5a6560;
+  --color-line: #b9c0b9;
+  --color-line-strong: #99a29b;
+
+  /* Status. Steel blue, never a brand colour: it marks interaction, not identity. */
+  --color-signal: #2c5a78;
+  --color-valid: #2f6b45;
+  --color-fault: #a32b22;
+  --color-caution: #a8721b;
+}
+
+/*
+ * Subject palette. Kept outside @theme because these are applied through inline styles, indexed
+ * by subject, not through utility classes: any dataset can declare any number of subjects.
+ */
+:root {
+  color-scheme: light dark;
+  --subject-1: #1d5fbf;
+  --subject-2: #c4571b;
+  --subject-3: #1f7a4d;
+  --subject-4: #6b3fa0;
+  --subject-5: #b02a2a;
+  --subject-6: #0f7385;
+  --subject-7: #5e7a16;
+  --subject-8: #a32268;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-frame: #1a1f1e;
+    --color-panel: #232927;
+    --color-sunken: #1c2220;
+    --color-rail: #69726c;
+    --color-ink: #e4e9e4;
+    --color-ink-soft: #97a099;
+    --color-line: #333a37;
+    --color-line-strong: #4a524d;
+    --color-signal: #6fa8cc;
+    --color-valid: #4fbf80;
+    --color-fault: #e5776b;
+    --color-caution: #d9a441;
+
+    --subject-1: #6ba4f0;
+    --subject-2: #f0904c;
+    --subject-3: #4fc389;
+    --subject-4: #a983e0;
+    --subject-5: #ef7d75;
+    --subject-6: #3fb6c8;
+    --subject-7: #a9c94e;
+    --subject-8: #e069a6;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--color-frame);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Engraved legend: the wide grotesque used for panel labels, never for running text. */
+.legend {
+  font-family: var(--font-display);
+  font-variation-settings: 'wdth' 118;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+*:focus-visible {
+  outline: 2px solid var(--color-signal);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
