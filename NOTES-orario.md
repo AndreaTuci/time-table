@@ -93,3 +93,36 @@ Registrato qui perche' non si ripeta.
   sono state scritte a mano in stile shadcn-vue e finora nessuna ha richiesto un primitivo
   accessibile di reka-ui. Da togliere, o da usare quando arrivera' il drawer delle sostituzioni.
 - `src/engine/risorse.ts` resta codice morto.
+
+## Phase P6 — due bug trovati
+
+### B1 — le ore disponibili di un docente contavano la pausa pranzo
+Il generatore del dataset escludeva la pausa dal conteggio, il loader no. `pino palloncino` e'
+dichiarato disponibile "12-19" il giovedi, quindi anche alle 13.00, e il numero mostrato a
+schermo era gonfiato di un'ora. Corretto nel loader usando `slotUtili`; test in
+`loader.test.ts`.
+
+### B2 — le lezioni scavalcavano la pausa pranzo (segnalato dall'utente)
+Sintomo: "Lunedi 16/09 CULTURA TECNICA, Marco Ferretti, classe ELE" appariva a cavallo del pranzo.
+
+Causa: il motore considerava consecutive due ore adiacenti **nell'elenco degli slot utili**.
+Tolta la pausa da quell'elenco, `12.00-13.00` e `14.00-15.00` sono adiacenti nell'elenco pur non
+essendolo nell'orologio. Un blocco da 2 ore poteva quindi nascere a cavallo della pausa.
+
+Il danno non era estetico: quel blocco **aggirava la regola dei blocchi minimi** scelta
+dall'utente. Un'ora prima di pranzo e una dopo non sono due ore consecutive, sono due ore
+isolate — esattamente cio' che la regola doveva impedire.
+
+Perche' i test non l'hanno preso: c'era `non occupa mai la pausa pranzo`, che passava ed e'
+sempre stato vero. Mancava l'invariante giusto, cioe' che **ogni lezione duri almeno il suo
+blocco minimo in ore davvero consecutive**. Ora c'e'.
+
+Correzioni:
+1. `giornata.ts` — un blocco e' rifiutato se i suoi indici di slot reali non sono consecutivi.
+2. `blocks.ts` — le tessere si fondono sull'indice reale, non sulla posizione, quindi il disegno
+   non puo' piu' mostrare una lezione unica che attraversa la pausa.
+3. `solver.test.ts` — nuovo test sull'invariante.
+
+Conseguenza sulla ricerca: le giornate ammesse si riducono a mattina+pomeriggio di lunghezza
+pari — 4+2, 2+4, 4+4 ore. Restano contigue e compatibili con le 32-34 ore settimanali, ma il
+motore ha meno margine di manovra.

@@ -7,8 +7,8 @@
 - [x] Phase P3 — Scaffold UI — grezza, **sostituita da P4**
 - [x] Phase P4 — Design system "Quadro" + tavola a tre classi — *verificata dall'utente*
 - [~] Phase P4.1 — Tema chiaro e filtro materie — *in attesa di verifica*
-- [~] Phase P5 — Pagine entita': docenti, corsi, classi, aule (sola lettura) — *da verificare*
-- [ ] Phase P6 — Editing su localStorage: disponibilita' cliccabili, date, rigenerazione
+- [x] Phase P5 — Pagine entita': docenti, corsi, classi, aule (sola lettura)
+- [~] Phase P6 — Editing su localStorage — *da verificare*
 - [ ] Phase P7 — Export CSV
 - [ ] Phase P8 — Assenze, sostituzioni e recuperi in interfaccia
 - [ ] Phase P9 — Deploy Cloudflare Pages + README
@@ -161,10 +161,16 @@ Correzioni chieste dall'utente dopo la verifica di P4.
 **Goal**: chi guarda la demo puo' cambiare i dati e rigenerare l'orario.
 Modificabile (deciso con l'utente): **disponibilita' docenti**, **date di inizio e fine**,
 **ore totali e tetti per materia**. Fuori scope: creare o eliminare anagrafiche.
-- [ ] Store con persistenza su localStorage e "ripristina i dati di esempio".
-- [ ] Disponibilita' del docente modificabili con un click sullo slot.
-- [ ] Date di inizio e fine, ore totali, tetti: modificabili.
-- [ ] Rigenerazione a partire dai dati modificati, con diagnostica se diventano infattibili.
+- [x] `src/data/store.ts` — dataset reattivo, persistito su localStorage, con ripristino.
+      Il JSON grezzo resta la verita': e' cio' che va passato al worker ed e' la forma che un
+      giorno arrivera' da Django. Le viste leggono il modello normalizzato derivato.
+- [x] `src/components/ui/number-field/` — campo numerico per le tabelle dense.
+- [x] Disponibilita' cliccabile: `WeekUsageGrid` diventa una fila di interruttori.
+- [x] Ore totali, blocco e tetto giornaliero modificabili dalla pagina corsi.
+- [x] Date di inizio e fine modificabili dalla pagina classi.
+- [x] Banda di avviso quando l'orario a schermo e' stato generato prima delle modifiche.
+- [x] `src/data/store.test.ts` — 6 test sullo store.
+- [x] `src/engine/loader.test.ts` — 4 test, fra cui quello sul conteggio delle ore disponibili.
 
 ## Phase P7 — Export CSV
 **Il documento principale sono i DATI A MONTE**, non l'orario: l'utente vuole mostrare cosa e'
