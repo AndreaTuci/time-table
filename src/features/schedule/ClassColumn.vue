@@ -10,6 +10,7 @@ const props = defineProps<{
   layout: RailLayout
   colours: Map<string, string>
   homeRoom: string
+  shown: Set<string>
 }>()
 
 const blocks = computed(() => groupIntoBlocks(props.lessons, props.layout.usable))
@@ -33,10 +34,18 @@ const hoursToday = computed(() => props.lessons.length)
         :style="{ gridRow: blockRow(layout, block.position, block.length), gridColumn: 1 }"
       >
         <LessonTile
+          v-if="shown.has(block.lesson.materia)"
           :lesson="block.lesson"
           :colour="colours.get(block.lesson.materia) ?? 'var(--subject-1)'"
           :hours="block.length"
           :home-room="block.lesson.aula === homeRoom"
+        />
+        <!-- Filtered out, but still busy: the hour is dimmed, never emptied. -->
+        <div
+          v-else
+          class="h-full border border-line/50 bg-line/25"
+          :title="block.lesson.materia"
+          aria-hidden="true"
         />
       </div>
     </div>

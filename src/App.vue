@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import CoverageGauge from '@/features/schedule/CoverageGauge.vue'
+import SubjectFilter from '@/features/schedule/SubjectFilter.vue'
 import TimetableBoard from '@/features/schedule/TimetableBoard.vue'
 import TitleBlock from '@/features/schedule/TitleBlock.vue'
 import WeekSpine from '@/features/schedule/WeekSpine.vue'
@@ -20,7 +21,9 @@ const usableSlots = slots.map((_, i) => i).filter((i) => slots[i] !== lunchSlot)
 const layout = railLayout(slots, usableSlots, lunchSlot)
 
 const classes = Object.keys(dataset.classi)
-const colours = subjectColours(Object.keys(dataset.corsi))
+const subjects = Object.keys(dataset.corsi)
+const colours = subjectColours(subjects)
+const visibleSubjects = ref<string[]>([...subjects])
 const homeRooms = Object.fromEntries(
   Object.entries(dataset.classi).map(([name, info]) => [name, info.aula_casa])
 )
@@ -38,6 +41,8 @@ const period = computed(() => {
 const weekDays = computed(() =>
   (calendar.value?.giorni ?? []).filter((day) => day.settimana === week.value)
 )
+// The board receives every lesson of the week, filtered only by date. Hiding a subject dims it
+// rather than deleting it: an hour that vanished would read as a free hour, which is a lie.
 const weekLessons = computed(() => {
   const dates = new Set(weekDays.value.map((day) => day.data))
   return (result.value?.lezioni ?? []).filter((lesson) => dates.has(lesson.data))
@@ -103,6 +108,8 @@ onMounted(() => generate(dataset, closures))
 
       <WeekSpine :weeks="weekSummaries" :current="week" @select="week = $event" />
 
+      <SubjectFilter v-model="visibleSubjects" :subjects="subjects" :colours="colours" />
+
       <TimetableBoard
         :lessons="weekLessons"
         :days="weekDays"
@@ -111,6 +118,7 @@ onMounted(() => generate(dataset, closures))
         :layout="layout"
         :colours="colours"
         :slots="slots"
+        :visible-subjects="visibleSubjects"
       />
 
       <div class="grid gap-3 md:grid-cols-3">

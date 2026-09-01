@@ -21,7 +21,10 @@ const props = defineProps<{
   layout: RailLayout
   colours: Map<string, string>
   slots: string[]
+  visibleSubjects: string[]
 }>()
+
+const shown = computed(() => new Set(props.visibleSubjects))
 
 const byDayAndClass = computed(() => {
   const index = new Map<string, Lesson[]>()
@@ -72,6 +75,7 @@ const lessonsFor = (date: string, className: string) =>
             :layout="layout"
             :colours="colours"
             :home-room="homeRooms[className] ?? ''"
+            :shown="shown"
           />
         </div>
       </div>
