@@ -1,4 +1,5 @@
 import { calendarioDi, type Calendario, type GiornoUtile } from './calendario'
+import { classiBloccate, diagnostica, type Problema } from './diagnostica'
 import { contestoDa, chiave, type Residuo } from './giornata'
 import { quotePerClasse, type QuoteMateria } from './quote'
 import { risolviSettimana, type Abitudini } from './settimana'
@@ -25,6 +26,14 @@ export interface EsitoOrario {
   millisecondi: number
   /** Vero se ci si e' fermati per tempo scaduto invece di esplorare fino in fondo. */
   interrotto: boolean
+  /** Cosa non torna nei dati, con il rimedio. Vuoto quando l'istanza e' sana. */
+  diagnostica: Problema[]
+  /**
+   * Classi saltate perche' dimostrabilmente impossibili. Sono escluse PRIMA della ricerca: una
+   * classe senza soluzione, lasciata dentro, farebbe fallire la settimana anche alle altre, che
+   * invece sono pianificabili benissimo.
+   */
+  classiEscluse: string[]
 }
 
 export interface OpzioniGenerazione {
@@ -103,15 +112,21 @@ export function generaOrario(modello: Modello, opzioni: OpzioniGenerazione = {})
   const [inizio, fine] = finestraGlobale(modello)
   const globale = calendarioDi(inizio, fine, modello.chiusure)
 
+  // Prima di cercare: le classi dimostrabilmente impossibili escono di scena. Tenerle dentro
+  // non le salverebbe e farebbe perdere l'orario anche a quelle sane.
+  const problemi = diagnostica(modello)
+  const bloccate = classiBloccate(problemi)
+
   const piani = new Map<string, PianoClasse>()
   const settimanePerClasse: Record<string, number> = {}
   for (const classeId of Object.keys(modello.classi)) {
+    if (bloccate.has(classeId)) continue
     const piano = pianoDi(modello, classeId, globale)
     piani.set(classeId, piano)
     settimanePerClasse[classeId] = piano.settimaneAttive.length
   }
 
-  const { titolari, problemi } = assegnaTitolari(modello, settimanePerClasse)
+  const { titolari, problemi: problemiTitolari } = assegnaTitolari(modello, settimanePerClasse)
   const ctx = contestoDa(modello, titolari)
 
   const lezioni: Lezione[] = []
@@ -181,8 +196,10 @@ export function generaOrario(modello: Modello, opzioni: OpzioniGenerazione = {})
     calendario: globale,
     copertura: coperturaDi(modello, lezioni),
     settimaneNonRisolte,
-    problemi,
+    problemi: problemiTitolari,
     millisecondi: Date.now() - avvio,
     interrotto,
+    diagnostica: problemi,
+    classiEscluse: [...bloccate],
   }
 }
