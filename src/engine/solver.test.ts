@@ -126,6 +126,38 @@ describe('generaOrario sul dataset demo', () => {
     }
   })
 
+  it('non spezza mai una lezione a cavallo della pausa pranzo', () => {
+    // Tolta la pausa dagli slot utili, le 12-13 e le 14-15 diventano adiacenti nell'elenco pur
+    // essendo distanti nell'orologio. Il vincolo vero e' che ogni lezione duri almeno il suo
+    // blocco minimo in ore DAVVERO consecutive: senza questo, "due ore di fila" poteva voler
+    // dire un'ora prima di pranzo e una dopo, cioe' esattamente le ore isolate da evitare.
+    const perGiorno = new Map<string, Lezione[]>()
+    for (const lezione of esito.lezioni) {
+      const k = `${lezione.classe}|${lezione.data}`
+      perGiorno.set(k, [...(perGiorno.get(k) ?? []), lezione])
+    }
+
+    const troppoCorte: string[] = []
+    for (const [k, lezioni] of perGiorno) {
+      const ordinate = [...lezioni].sort((a, b) => a.indiceSlot - b.indiceSlot)
+      let inizio = 0
+      for (let i = 1; i <= ordinate.length; i++) {
+        const continua =
+          i < ordinate.length &&
+          ordinate[i].materia === ordinate[inizio].materia &&
+          ordinate[i].indiceSlot === ordinate[i - 1].indiceSlot + 1
+        if (continua) continue
+        const durata = i - inizio
+        const minima = modello.materie[ordinate[inizio].materia].bloccoOre
+        if (durata < minima) {
+          troppoCorte.push(`${k} ${ordinate[inizio].materia}: ${durata}h invece di ${minima}h`)
+        }
+        inizio = i
+      }
+    }
+    expect(troppoCorte).toEqual([])
+  })
+
   it('assegna a ogni coppia classe-materia un solo docente titolare per tutto il corso', () => {
     const perIncarico = new Map<string, Set<string>>()
     for (const l of esito.lezioni) {

@@ -3,6 +3,10 @@ import type { Lesson } from './types'
 /**
  * Consecutive hours of the same subject are one lesson, not several.
  * "Matematica dalle 8 alle 10" is how a timetable is read, so it is how it is drawn.
+ *
+ * Adjacency is measured on the REAL slot index, not on the position among usable slots: with the
+ * lunch break removed from that list, 12.00-13.00 and 14.00-15.00 sit next to each other in it
+ * while being an hour apart on the clock. Merging those would draw one tile straddling the break.
  */
 export interface LessonBlock {
   lesson: Lesson
@@ -28,7 +32,7 @@ export function groupIntoBlocks(lessons: Lesson[], usable: number[]): LessonBloc
       previous.lesson.materia === lesson.materia &&
       previous.lesson.docente === lesson.docente &&
       previous.lesson.aula === lesson.aula &&
-      previous.position + previous.length === position
+      previous.lesson.indiceSlot + previous.length === lesson.indiceSlot
     if (continues) previous.length++
     else blocks.push({ lesson, position, length: 1 })
   }

@@ -14,7 +14,12 @@ import type { Titolare } from './titolari'
  *
  * La giornata di una classe e' contigua — niente ore-buco — ma non deve cominciare alle 08.00:
  * puo' scorrere piu' tardi, ed e' cio' che rende utilizzabile un docente disponibile solo di
- * pomeriggio. Un blocco puo' scavalcare la pausa pranzo, com'e' normale per un laboratorio lungo.
+ * pomeriggio.
+ *
+ * Una singola lezione non scavalca pero' la pausa pranzo. Tolta la pausa dall'elenco degli slot
+ * utili, le 12.00-13.00 e le 14.00-15.00 diventano adiacenti NELL'ELENCO pur non essendolo
+ * NELL'OROLOGIO: senza un controllo esplicito il motore le userebbe per un blocco da due ore
+ * consecutive che consecutive non sono, e la regola dei blocchi minimi verrebbe aggirata.
  */
 
 export interface BloccoGiorno {
@@ -151,6 +156,8 @@ function provaBlocco(
 ): BloccoCollocato | null {
   const slot = ctx.slotUtili.slice(posizione, posizione + durata)
   if (slot.length < durata) return null
+  // Ore davvero consecutive: gli indici reali non devono saltare la pausa pranzo.
+  if (slot.some((s, i) => i > 0 && s !== slot[i - 1] + 1)) return null
 
   const titolare = ctx.titolarePer.get(chiave(classe, materia))
   const docente = titolare && ctx.docentiPerId.get(titolare.docente)
