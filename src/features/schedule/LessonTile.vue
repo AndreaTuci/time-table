@@ -20,13 +20,14 @@ const compact = computed(() => props.hours < 2)
 
 <template>
   <div
-    class="flex h-full flex-col justify-center overflow-hidden border border-line/60 border-l-[3px] px-1.5 py-1"
+    class="flex h-full flex-col justify-center overflow-hidden border border-line/60 border-l-[3px] px-1 py-1"
     :style="{
       borderLeftColor: colour,
       background: `color-mix(in oklab, ${colour} 10%, var(--color-panel))`,
     }"
   >
-    <p class="truncate text-[10.5px] font-semibold leading-tight" :style="{ color: colour }">
+    <!-- The name wraps rather than truncating: "CULTURA GE…" identifies nothing. -->
+    <p class="line-clamp-2 text-[10.5px] font-semibold leading-[1.15]" :style="{ color: colour }">
       {{ lesson.materia }}
     </p>
     <p v-if="!compact" class="truncate font-mono text-[9.5px] leading-tight text-ink-soft">
