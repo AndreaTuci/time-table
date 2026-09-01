@@ -5,10 +5,14 @@
 - [x] Phase P1 — Modello dati esteso + dataset demo + calendario
 - [x] Phase P2 — Motore di scheduling (orario tipo -> calendario) + test
 - [x] Phase P3 — Scaffold UI — grezza, **sostituita da P4**
-- [~] Phase P4 — Design system "Quadro" + tavola a tre classi — *in attesa di verifica*
-- [ ] Phase P5 — Assenze, sostituzioni e recuperi in interfaccia
-- [ ] Phase P6 — Deploy Cloudflare Pages + README
-- [ ] Phase P7 — Rimessa in riga: rinomina in inglese, split dei file lunghi
+- [x] Phase P4 — Design system "Quadro" + tavola a tre classi — *verificata dall'utente*
+- [~] Phase P4.1 — Tema chiaro e filtro materie — *in attesa di verifica*
+- [ ] Phase P5 — Pagine entita': docenti, corsi, classi, aule (sola lettura)
+- [ ] Phase P6 — Editing su localStorage: disponibilita' cliccabili, date, rigenerazione
+- [ ] Phase P7 — Export CSV
+- [ ] Phase P8 — Assenze, sostituzioni e recuperi in interfaccia
+- [ ] Phase P9 — Deploy Cloudflare Pages + README
+- [ ] Phase P10 — Rimessa in riga: rinomina in inglese, split dei file lunghi
 
 ### Regole di ingaggio (corrette dopo il richiamo dell'utente del 01/09)
 
@@ -114,10 +118,45 @@ totali esatte su tutte e 15 le coppie classe-materia e 29 test verdi.
 La fase ha toccato **19 file**, non ≤12: il design system e la tavola non erano separabili
 senza consegnare una fase a meta'. Registrato invece di nasconderlo.
 
-## Phase P5 — Assenze, sostituzioni e recuperi in interfaccia
-Il motore (`src/engine/sostituzioni.ts`) e' gia' scritto e non e' ancora collegato a nulla.
+## Phase P4.1 — Tema chiaro e filtro materie
+Correzioni chieste dall'utente dopo la verifica di P4.
+- [x] `src/style.css` — **solo tema chiaro** (`color-scheme: light`, blocco scuro rimosso) e
+      palette schiarita: da grigio industriale a grigio da aula luminosa.
+- [x] `src/features/schedule/SubjectFilter.vue` — interruttori delle materie, che fanno anche da
+      legenda. Una materia spenta viene **attenuata, non cancellata**: un'ora sparita si
+      leggerebbe come un'ora libera, e sarebbe falso.
+- [x] `TimetableBoard.vue`, `ClassColumn.vue`, `App.vue` — filtro collegato.
+
+## Phase P5 — Pagine entita' (sola lettura)
+**Goal**: la demo smette di essere una schermata sola. Si naviga fra orario, docenti, corsi,
+classi e aule, e ogni entita' mostra visivamente cio' che la riguarda.
+- [ ] Navigazione a tab.
+- [ ] Docente: griglia settimanale con gli slot accesi/spenti secondo la disponibilita', piu' le
+      classi e le materie che segue e il carico settimanale reale.
+- [ ] Corso: ore totali, tipo aula, blocco, tetto giornaliero, chi lo insegna.
+- [ ] Classe: finestra, aula casa, materie, avanzamento.
+- [ ] Aula: tipo e occupazione settimanale.
+
+## Phase P6 — Editing su localStorage
+**Goal**: chi guarda la demo puo' cambiare i dati e rigenerare l'orario.
+Modificabile (deciso con l'utente): **disponibilita' docenti**, **date di inizio e fine**,
+**ore totali e tetti per materia**. Fuori scope: creare o eliminare anagrafiche.
+- [ ] Store con persistenza su localStorage e "ripristina i dati di esempio".
+- [ ] Disponibilita' del docente modificabili con un click sullo slot.
+- [ ] Date di inizio e fine, ore totali, tetti: modificabili.
+- [ ] Rigenerazione a partire dai dati modificati, con diagnostica se diventano infattibili.
+
+## Phase P7 — Export CSV
+**Il documento principale sono i DATI A MONTE**, non l'orario: l'utente vuole mostrare cosa e'
+entrato nel generatore, perche' e' quello che rende verificabile cio' che ne e' uscito.
+- [ ] Dati di ingresso: docenti con disponibilita', corsi, classi, aule, chiusure.
+- [ ] Orario completo, una riga per ora.
+- [ ] Orario per classe, in forma di griglia.
+
+## Phase P8 — Assenze, sostituzioni e recuperi in interfaccia
+Il motore (`src/engine/sostituzioni.ts`) e' gia' scritto, **non e' collegato a nulla e non ha test**.
+- [ ] Test del motore sostituzioni.
 - [ ] Pannello: scegli docente e giorno -> lezioni saltate -> sostituto oppure recupero.
-- [ ] Test del motore sostituzioni (oggi ne e' privo).
 
 ## Phase P5 — Assenze, sostituzioni e recuperi
 - [ ] `src/engine/sostituzioni.ts` — chi puo' sostituire, dove si recupera.
