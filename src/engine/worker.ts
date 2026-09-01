@@ -17,13 +17,17 @@ export interface RichiestaGenerazione {
 }
 
 export type RispostaGenerazione =
+  | { stato: 'avanzamento'; settimana: number; totali: number }
   | { stato: 'fatto'; esito: EsitoOrario }
   | { stato: 'errore'; messaggio: string; problemi: string[] }
 
 self.onmessage = (evento: MessageEvent<RichiestaGenerazione>) => {
   try {
     const modello = caricaModello(evento.data.dati, evento.data.chiusure)
-    const esito = generaOrario(modello)
+    const esito = generaOrario(modello, {
+      onSettimana: (settimana, totali) =>
+        self.postMessage({ stato: 'avanzamento', settimana, totali } satisfies RispostaGenerazione),
+    })
     self.postMessage({ stato: 'fatto', esito } satisfies RispostaGenerazione)
   } catch (errore) {
     const problemi = errore instanceof Error && 'problemi' in errore ? (errore.problemi as string[]) : []

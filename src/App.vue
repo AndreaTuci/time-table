@@ -32,7 +32,7 @@ const TABS = [
 const TAB_IDS: string[] = TABS.map((entry) => entry.id)
 const tab = useHashRoute(TAB_IDS, 'orario')
 
-const { result, running, failure, dataProblems, generate } = useScheduleGenerator()
+const { result, running, failure, dataProblems, progress, generate } = useScheduleGenerator()
 
 /** Revision the current schedule was built from: anything newer makes it stale, not wrong. */
 const builtFrom = ref(-1)
@@ -50,6 +50,15 @@ function run() {
   generate(data, closures)
 }
 
+/** Restoring also regenerates: the example data is known good, so leaving a stale board makes
+ *  the button look as if it did nothing. */
+function restore() {
+  resetToExample()
+  run()
+}
+
+const unresolved = computed(() => result.value?.settimaneNonRisolte ?? [])
+
 onMounted(run)
 </script>
 
@@ -59,7 +68,7 @@ onMounted(run)
       <h1 class="legend text-[13px]">Quadro orario</h1>
       <span class="font-mono text-[10px] text-ink-soft">centro di formazione professionale</span>
       <div class="ml-auto flex items-center gap-2">
-        <Button v-if="edited" variant="ghost" size="sm" @click="resetToExample()">
+        <Button v-if="edited" variant="ghost" size="sm" @click="restore">
           ripristina i dati di esempio
         </Button>
         <Button :variant="stale ? 'active' : 'default'" :disabled="running" @click="run">
@@ -78,6 +87,22 @@ onMounted(run)
       I dati sono cambiati: l'orario qui sotto è stato generato prima delle tue modifiche.
     </p>
     <p
+      v-if="result && unresolved.length && !running"
+      class="mt-2 border border-fault bg-panel px-3 py-1.5 font-mono text-[10.5px] text-fault"
+      role="status"
+    >
+      <template v-if="result.interrotto">
+        Il motore si è fermato dopo {{ (result.millisecondi / 1000).toFixed(0) }} secondi senza
+        riuscire a chiudere {{ unresolved.length }} settimane su
+        {{ result.calendario.numeroSettimane }}: con questi dati l'orario probabilmente non esiste.
+      </template>
+      <template v-else>
+        {{ unresolved.length }} settimane su {{ result.calendario.numeroSettimane }} non hanno
+        soluzione con questi dati.
+      </template>
+      Allarga le date, riduci le ore, oppure ripristina i dati di esempio.
+    </p>
+    <p
       v-if="!storageAvailable"
       class="mt-2 border border-line-strong bg-panel px-3 py-1.5 font-mono text-[10.5px] text-ink-soft"
     >
@@ -87,8 +112,17 @@ onMounted(run)
     <main class="pt-3">
       <div v-if="running" class="border border-line-strong bg-panel p-10 text-center">
         <p class="legend text-[11px]">incastro in corso</p>
-        <p class="mt-1 font-mono text-[10px] text-ink-soft">
-          Il motore gira in un worker: la pagina resta viva.
+        <p v-if="progress" class="mt-2 font-mono text-[11px]">
+          settimana {{ progress.week + 1 }} di {{ progress.total }}
+        </p>
+        <div v-if="progress" class="mx-auto mt-2 h-1 w-48 bg-sunken">
+          <div
+            class="h-full bg-signal transition-[width]"
+            :style="{ width: `${((progress.week + 1) / progress.total) * 100}%` }"
+          />
+        </div>
+        <p class="mt-2 font-mono text-[10px] text-ink-soft">
+          Il motore si ferma da solo dopo 20 secondi se i dati non sono pianificabili.
         </p>
       </div>
 

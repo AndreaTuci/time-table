@@ -17,31 +17,51 @@ const result = shallowRef<ScheduleResult | null>(null)
 const running = ref(false)
 const failure = ref<string | null>(null)
 const dataProblems = ref<string[]>([])
+const progress = ref<{ week: number; total: number } | null>(null)
+
+/**
+ * The worker currently searching, if any. Without this a second click — or an edit followed by a
+ * regenerate — left the previous search running: two workers competing, and whichever finished
+ * last won, which is not necessarily the one built from the current data.
+ */
+let active: Worker | null = null
+
+function stop() {
+  active?.terminate()
+  active = null
+  running.value = false
+  progress.value = null
+}
 
 export function useScheduleGenerator() {
   function generate(data: Record<string, unknown>, closures: Chiusura[]) {
+    stop()
     running.value = true
     failure.value = null
     dataProblems.value = []
+    progress.value = null
 
     const worker = new Worker(new URL('../engine/worker.ts', import.meta.url), { type: 'module' })
+    active = worker
 
     worker.onmessage = (event: MessageEvent<RispostaGenerazione>) => {
+      if (event.data.stato === 'avanzamento') {
+        progress.value = { week: event.data.settimana, total: event.data.totali }
+        return
+      }
       if (event.data.stato === 'fatto') result.value = event.data.esito
       else {
         failure.value = event.data.messaggio
         dataProblems.value = event.data.problemi
       }
-      running.value = false
-      worker.terminate()
+      stop()
     }
     worker.onerror = (event) => {
       failure.value = event.message || 'Il generatore si è fermato in modo imprevisto'
-      running.value = false
-      worker.terminate()
+      stop()
     }
     worker.postMessage({ dati: data, chiusure: closures } satisfies RichiestaGenerazione)
   }
 
-  return { result, running, failure, dataProblems, generate }
+  return { result, running, failure, dataProblems, progress, generate, stop }
 }

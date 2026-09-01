@@ -23,7 +23,23 @@ export interface EsitoOrario {
   problemi: string[]
   /** Quanto e' durata la generazione: la demo lo mostra, il motore non lo usa. */
   millisecondi: number
+  /** Vero se ci si e' fermati per tempo scaduto invece di esplorare fino in fondo. */
+  interrotto: boolean
 }
+
+export interface OpzioniGenerazione {
+  /** Tempo massimo di ricerca. Oltre, ci si ferma e lo si dichiara. */
+  limiteMs?: number
+  /** Chiamata a ogni settimana conclusa, per dare un avanzamento a chi guarda. */
+  onSettimana?: (fatte: number, totali: number) => void
+}
+
+/**
+ * Un'istanza infattibile non si distingue da una difficile se non provando: senza un limite il
+ * motore cercherebbe per ogni settimana e per ogni tentativo, e chi guarda vedrebbe una pagina
+ * che non finisce mai. Meglio arrendersi presto e dirlo.
+ */
+const LIMITE_MS_DEFAULT = 20_000
 
 interface PianoClasse {
   giorni: GiornoUtile[]
@@ -81,8 +97,9 @@ function coperturaDi(modello: Modello, lezioni: Lezione[]): OrePerClasse[] {
   )
 }
 
-export function generaOrario(modello: Modello): EsitoOrario {
+export function generaOrario(modello: Modello, opzioni: OpzioniGenerazione = {}): EsitoOrario {
   const avvio = Date.now()
+  const scadenza = avvio + (opzioni.limiteMs ?? LIMITE_MS_DEFAULT)
   const [inizio, fine] = finestraGlobale(modello)
   const globale = calendarioDi(inizio, fine, modello.chiusure)
 
@@ -100,8 +117,14 @@ export function generaOrario(modello: Modello): EsitoOrario {
   const lezioni: Lezione[] = []
   const settimaneNonRisolte: number[] = []
   let abitudini: Abitudini = new Map()
+  let interrotto = false
 
   for (let settimana = 0; settimana < globale.numeroSettimane; settimana++) {
+    opzioni.onSettimana?.(settimana, globale.numeroSettimane)
+    if (interrotto) {
+      settimaneNonRisolte.push(settimana)
+      continue
+    }
     const fabbisogno = new Map<string, Residuo>()
     const giorniPerClasse = new Map<string, number[]>()
     for (const [classeId, piano] of piani) {
@@ -112,9 +135,13 @@ export function generaOrario(modello: Modello): EsitoOrario {
     }
     if (fabbisogno.size === 0) continue
 
-    const esito = risolviSettimana(modello, ctx, fabbisogno, giorniPerClasse, abitudini)
+    const { esito, scaduto } = risolviSettimana(
+      modello, ctx, fabbisogno, giorniPerClasse, abitudini, scadenza
+    )
     if (!esito) {
       settimaneNonRisolte.push(settimana)
+      // Scaduto il tempo su una settimana, le successive non hanno speranza di andare meglio.
+      if (scaduto) interrotto = true
       continue
     }
 
@@ -156,5 +183,6 @@ export function generaOrario(modello: Modello): EsitoOrario {
     settimaneNonRisolte,
     problemi,
     millisecondi: Date.now() - avvio,
+    interrotto,
   }
 }
