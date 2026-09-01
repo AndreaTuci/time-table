@@ -3,39 +3,58 @@ import { computed } from 'vue'
 import type { SubjectCoverage } from './types'
 
 /**
- * Not a progress bar. Total hours have to be hit EXACTLY, not maximised: a course that overruns
- * is as wrong as one that falls short. So the gauge carries a target notch, and the fill is read
- * against it — under, on, or past.
+ * Hours scheduled against hours owed.
+ *
+ * Not a progress bar in spirit: the total has to be hit EXACTLY, and a course that overruns is
+ * as wrong as one that falls short. The track therefore ENDS at the target, so a correct subject
+ * reads as full; a shortfall leaves a visible gap, and an overrun sticks out past the edge in the
+ * fault colour. An earlier version reserved room for the overrun inside the track, which made
+ * every correct row sit at 80% and look permanently unfinished.
  */
 const props = defineProps<{ row: SubjectCoverage; colour: string }>()
 
-const OVERSHOOT_ROOM = 1.25
+const delta = computed(() => props.row.oreProgrammate - props.row.oreRichieste)
 
-const fill = computed(() => {
+const filled = computed(() => {
   if (props.row.oreRichieste === 0) return 0
-  const ratio = props.row.oreProgrammate / props.row.oreRichieste
-  return Math.min(ratio, OVERSHOOT_ROOM) / OVERSHOOT_ROOM
+  return Math.min(props.row.oreProgrammate / props.row.oreRichieste, 1) * 100
 })
-const onTarget = computed(() => props.row.oreProgrammate === props.row.oreRichieste)
-const notch = computed(() => 1 / OVERSHOOT_ROOM)
+
+/** How far past the end an overrun sticks out, as a share of the track. Capped so it stays legible. */
+const OVERRUN_CAP = 0.3
+const overrun = computed(() => {
+  if (delta.value <= 0 || props.row.oreRichieste === 0) return 0
+  return Math.min(delta.value / props.row.oreRichieste, OVERRUN_CAP) * 100
+})
+
+const label = computed(() => {
+  if (delta.value === 0) return `${props.row.oreProgrammate}/${props.row.oreRichieste}`
+  return `${delta.value > 0 ? '+' : '−'}${Math.abs(delta.value)} h`
+})
 </script>
 
 <template>
-  <div class="flex items-center gap-2">
+  <div
+    class="flex items-center gap-2"
+    :title="`${row.materia}: ${row.oreProgrammate} ore programmate su ${row.oreRichieste} richieste`"
+  >
     <span class="min-w-0 flex-1 truncate text-[11px]">{{ row.materia }}</span>
-    <div class="relative h-2 w-24 shrink-0 border border-line-strong bg-sunken">
-      <div class="h-full" :style="{ width: `${fill * 100}%`, background: colour }" />
-      <span
-        class="absolute top-[-2px] bottom-[-2px] w-px bg-ink"
-        :style="{ left: `${notch * 100}%` }"
-        aria-hidden="true"
+
+    <div class="relative h-2.5 w-24 shrink-0 border border-line-strong bg-sunken">
+      <div class="h-full" :style="{ width: `${filled}%`, background: colour }" />
+      <!-- An overrun leaves the track: it is not progress, it is damage. -->
+      <div
+        v-if="overrun > 0"
+        class="absolute top-[-2px] bottom-[-2px] left-full bg-fault"
+        :style="{ width: `${overrun}%` }"
       />
     </div>
+
     <span
-      class="w-14 shrink-0 text-right font-mono text-[10px]"
-      :class="onTarget ? 'text-valid' : 'text-fault'"
+      class="w-16 shrink-0 text-right font-mono text-[10px]"
+      :class="delta === 0 ? 'text-valid' : 'text-fault'"
     >
-      {{ row.oreProgrammate }}/{{ row.oreRichieste }}
+      {{ label }}
     </span>
   </div>
 </template>
