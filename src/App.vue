@@ -5,6 +5,7 @@ import AppTabs from '@/features/shell/AppTabs.vue'
 import DiagnosticsPanel from '@/features/shell/DiagnosticsPanel.vue'
 import ClassesPage from '@/features/classes/ClassesPage.vue'
 import CoursesPage from '@/features/courses/CoursesPage.vue'
+import ExportPage from '@/features/export/ExportPage.vue'
 import RoomsPage from '@/features/rooms/RoomsPage.vue'
 import SchedulePage from '@/features/schedule/SchedulePage.vue'
 import TeachersPage from '@/features/teachers/TeachersPage.vue'
@@ -26,6 +27,7 @@ const TABS = [
   { id: 'corsi', label: 'corsi' },
   { id: 'classi', label: 'classi' },
   { id: 'aule', label: 'aule' },
+  { id: 'dati', label: 'dati' },
 ] as const
 
 // Widened to string on purpose: AppTabs writes back into this model, and a union type would
@@ -144,7 +146,7 @@ onMounted(run)
         <ul v-if="blockingProblems.length" class="mt-3 space-y-1 font-mono text-[10px] text-ink-soft">
           <li v-for="problem in blockingProblems" :key="problem">— {{ problem }}</li>
         </ul>
-        <Button class="mt-4" @click="resetToExample()">ripristina i dati di esempio</Button>
+        <Button class="mt-4" @click="restore">ripristina i dati di esempio</Button>
       </div>
 
       <template v-else-if="result && model">
@@ -153,6 +155,7 @@ onMounted(run)
         <CoursesPage v-else-if="tab === 'corsi'" :model="model" :result="result" :colours="colours" />
         <ClassesPage v-else-if="tab === 'classi'" :model="model" :result="result" :colours="colours" />
         <RoomsPage v-else-if="tab === 'aule'" :model="model" :result="result" :colours="colours" />
+        <ExportPage v-else-if="tab === 'dati'" :model="model" :result="result" />
       </template>
     </main>
   </div>
