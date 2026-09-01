@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import LessonTile from './LessonTile.vue'
 import { groupIntoBlocks } from './blocks'
-import { blockRow, rowStart, rowTemplate, ROW_HEIGHT_REM, type RailLayout } from './geometry'
+import { blockRow, FOOTER_REM, rowStart, rowTemplate, type RailLayout } from './geometry'
 import type { Lesson } from './types'
 
 const props = defineProps<{
@@ -18,7 +18,7 @@ const hoursToday = computed(() => props.lessons.length)
 </script>
 
 <template>
-  <div class="w-[7.5rem] shrink-0 border-r border-line last:border-r-0">
+  <div class="min-w-0 flex-1 border-r border-line last:border-r-0">
     <div class="grid" :style="{ gridTemplateRows: rowTemplate(layout) }">
       <!-- Empty seats: the void is sunken metal, never white. -->
       <div
@@ -52,7 +52,7 @@ const hoursToday = computed(() => props.lessons.length)
     <p
       class="border-t border-line py-0.5 text-center font-mono text-[9px]"
       :class="hoursToday === 0 ? 'text-ink-soft/50' : 'text-ink-soft'"
-      :style="{ minHeight: `${ROW_HEIGHT_REM / 2}rem` }"
+      :style="{ height: `${FOOTER_REM}rem` }"
     >
       {{ hoursToday }}h
     </p>
