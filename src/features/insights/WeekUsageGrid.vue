@@ -30,7 +30,11 @@ const props = defineProps<{
   colours: Map<string, string>
   /** How many weeks the course runs, so an occupancy count can be read as a share. */
   weeks: number
+  /** When set, each open/closed cell becomes a switch. Rooms are never editable. */
+  editable?: boolean
 }>()
+
+const emit = defineEmits<{ toggle: [day: number, slot: number] }>()
 
 const days = computed(() => GIORNI.map((_, index) => index))
 const cellOf = (day: number, slot: number) => props.usage.get(`${day}|${slot}`)
@@ -61,10 +65,25 @@ const HATCH =
         <span class="legend text-[9px] text-ink-soft">{{ weekdayLabel(day).slice(0, 3) }}</span>
       </div>
       <div class="grid" :style="{ gridTemplateRows: rowTemplate(layout) }">
-        <div
+        <component
+          :is="editable ? 'button' : 'div'"
           v-for="(slot, position) in layout.usable"
           :key="slot"
-          class="m-px flex flex-col justify-center overflow-hidden px-1"
+          :type="editable ? 'button' : undefined"
+          class="m-px flex flex-col justify-center overflow-hidden px-1 text-left"
+          :class="
+            editable &&
+            'transition-shadow hover:shadow-[inset_0_0_0_2px_var(--color-signal)] focus-visible:shadow-[inset_0_0_0_2px_var(--color-signal)]'
+          "
+          :title="
+            editable
+              ? available[day]?.[slot]
+                ? 'Disponibile — clicca per togliere'
+                : 'Non disponibile — clicca per aggiungere'
+              : undefined
+          "
+          :aria-pressed="editable ? available[day]?.[slot] : undefined"
+          @click="editable && emit('toggle', day, slot)"
           :style="{
             gridRow: `${rowStart(layout, position)} / span 1`,
             gridColumn: 1,
@@ -87,7 +106,7 @@ const HATCH =
               {{ cellOf(day, slot)!.settimane }}/{{ weeks }} sett.
             </span>
           </template>
-        </div>
+        </component>
       </div>
     </div>
   </div>
