@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { Button } from '@/components/ui/button'
+import AbsencePage from '@/features/absences/AbsencePage.vue'
 import AppTabs from '@/features/shell/AppTabs.vue'
 import DiagnosticsPanel from '@/features/shell/DiagnosticsPanel.vue'
 import ClassesPage from '@/features/classes/ClassesPage.vue'
@@ -27,6 +28,7 @@ const TABS = [
   { id: 'corsi', label: 'corsi' },
   { id: 'classi', label: 'classi' },
   { id: 'aule', label: 'aule' },
+  { id: 'assenze', label: 'assenze' },
   { id: 'dati', label: 'dati' },
 ] as const
 
@@ -155,6 +157,7 @@ onMounted(run)
         <CoursesPage v-else-if="tab === 'corsi'" :model="model" :result="result" :colours="colours" />
         <ClassesPage v-else-if="tab === 'classi'" :model="model" :result="result" :colours="colours" />
         <RoomsPage v-else-if="tab === 'aule'" :model="model" :result="result" :colours="colours" />
+        <AbsencePage v-else-if="tab === 'assenze'" :model="model" :result="result" :colours="colours" />
         <ExportPage v-else-if="tab === 'dati'" :model="model" :result="result" />
       </template>
     </main>
