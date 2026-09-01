@@ -42,6 +42,8 @@ export interface Contesto {
   titolarePer: Map<string, Titolare>
   aulePerTipo: Map<string, string[]>
   tipoDiAula: Map<string, string>
+  /** Quanti slot utili cadono prima della pausa pranzo: la lezione non puo' scavalcarla. */
+  morningCount: number
   /** Fascia contigua piu' lunga di ogni docente, giorno per giorno. Serve a potare la ricerca. */
   fasciaMassima: Map<string, number[]>
   /** Ore totali libere di ogni docente, giorno per giorno. Anche questa serve a potare. */
@@ -64,6 +66,8 @@ export function contestoDa(modello: Modello, titolari: Titolare[]): Contesto {
     titolarePer: new Map(titolari.map((t) => [chiave(t.classe, t.materia), t])),
     aulePerTipo,
     tipoDiAula: new Map(modello.aule.map((a) => [a.id, a.tipo])),
+    morningCount: modello.slotUtili.filter((s) => s < modello.slot.indexOf(modello.pausaPranzo))
+      .length,
     fasciaMassima: new Map(modello.docenti.map((d) => [d.id, fasceMassimeDi(d, modello.slotUtili)])),
     oreLibere: new Map(
       modello.docenti.map((d) => [
@@ -189,9 +193,35 @@ function segna(stato: StatoGiorno, blocco: BloccoCollocato, occupa: boolean): vo
   }
 }
 
-/** Budget di esplorazione condiviso da tutta la settimana: impedisce le ricerche patologiche. */
+/**
+ * Quanto la ricerca puo' ancora spendere. Due limiti perche' misurano cose diverse: i nodi
+ * proteggono da un ramo combinatorio esploso, la scadenza protegge dall'unico caso che conta
+ * davvero per chi guarda lo schermo — un'istanza infattibile, su cui il motore cercherebbe a
+ * vuoto finche' non finiscono i nodi di OGNI settimana e di OGNI tentativo.
+ */
 export interface Budget {
   nodi: number
+  /** Istante oltre il quale ci si arrende, in millisecondi epoch. */
+  scadenza: number
+  /** Vero quando ci si e' arresi per tempo scaduto e non per nodi esauriti. */
+  scaduto: boolean
+  /** Nodi spesi da inizio settimana. Sta QUI e non sulla singola giornata: un contatore che si
+   *  azzera a ogni giornata non raggiunge mai la soglia, e l'orologio non verrebbe mai letto. */
+  spesi: number
+}
+
+/** Ogni quanti nodi si guarda l'orologio: leggerlo a ogni nodo costerebbe piu' della ricerca. */
+const NODI_FRA_CONTROLLI_TEMPO = 4096
+
+export function budgetEsaurito(budget: Budget): boolean {
+  if (budget.nodi <= 0) return true
+  budget.nodi--
+  budget.spesi++
+  if (budget.spesi % NODI_FRA_CONTROLLI_TEMPO !== 0) return false
+  if (Date.now() < budget.scadenza) return false
+  budget.scaduto = true
+  budget.nodi = 0
+  return true
 }
 
 /** Le lezioni che restano da collocare a una classe in questa settimana, per materia. */
@@ -243,7 +273,7 @@ function riempiClasse<T>(
   }
 
   const passo = (posizione: number, oreFatte: number): T | null => {
-    if (--stato.budget.nodi <= 0) return null
+    if (budgetEsaurito(stato.budget)) return null
     if (oreFatte >= vincoli.oreMin) {
       const esito = prosegui([...posate])
       if (esito) return esito
@@ -277,12 +307,51 @@ function riempiClasse<T>(
   }
 
   const ultimaPartenza = ctx.slotUtili.length - vincoli.oreMin
+  const durate = [...new Set([...residuo.values()].flat())]
+
   for (let partenza = 0; partenza <= ultimaPartenza; partenza++) {
+    if (!partenzaPraticabile(ctx, partenza, durate, vincoli)) continue
     const esito = passo(partenza, 0)
     if (esito) return esito
     if (vincoli.oreMin === 0 && vincoli.oreMax === 0) break
   }
   return null
+}
+
+/**
+ * Scarta subito le ore d'inizio da cui nessuna giornata valida puo' nascere.
+ *
+ * Poiche' una lezione non scavalca la pausa, una giornata che arriva al pomeriggio riempie la
+ * mattina ESATTAMENTE dal punto di partenza alla pausa. Se quella lunghezza non e' componibile
+ * con i blocchi disponibili, l'unica alternativa e' fermarsi in mattinata — e la mattina e' piu'
+ * corta del minimo giornaliero. Provare comunque significa riempire mezza giornata per scoprire
+ * il vicolo cieco in fondo: su questi dati taglia tre partenze su cinque.
+ */
+function partenzaPraticabile(
+  ctx: Contesto,
+  partenza: number,
+  durate: number[],
+  vincoli: VincoliGiorno
+): boolean {
+  // Giornata di solo pomeriggio: lunga al massimo quanto resta dopo la pausa.
+  if (partenza >= ctx.morningCount) return ctx.slotUtili.length - partenza >= vincoli.oreMin
+
+  // Per arrivare al pomeriggio la mattina va riempita per intero, da qui alla pausa.
+  const mattina = ctx.morningCount - partenza
+  if (componibile(mattina, durate)) return true
+
+  // Altrimenti la giornata deve finire in mattinata, e deve gia' bastare.
+  return mattina >= vincoli.oreMin
+}
+
+/** Se una lunghezza si puo' comporre come somma di blocchi disponibili. */
+function componibile(lunghezza: number, durate: number[]): boolean {
+  const possibile = new Array<boolean>(lunghezza + 1).fill(false)
+  possibile[0] = true
+  for (let n = 1; n <= lunghezza; n++) {
+    possibile[n] = durate.some((d) => d <= n && possibile[n - d])
+  }
+  return possibile[lunghezza]
 }
 
 /**
