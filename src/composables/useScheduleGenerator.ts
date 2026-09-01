@@ -8,13 +8,17 @@ import type { ScheduleResult } from '@/features/schedule/types'
  *
  * The search explores a lot and can take seconds; running it on the main thread would freeze the
  * page. In production this same engine becomes an async server task without a line changing.
+ *
+ * The state lives at module level on purpose: every page reads the same generated schedule, and
+ * a timetable regenerated per view would be both wasteful and — since the search has ties to
+ * break — potentially a DIFFERENT timetable on each page.
  */
-export function useScheduleGenerator() {
-  const result = shallowRef<ScheduleResult | null>(null)
-  const running = ref(false)
-  const failure = ref<string | null>(null)
-  const dataProblems = ref<string[]>([])
+const result = shallowRef<ScheduleResult | null>(null)
+const running = ref(false)
+const failure = ref<string | null>(null)
+const dataProblems = ref<string[]>([])
 
+export function useScheduleGenerator() {
   function generate(data: Record<string, unknown>, closures: Chiusura[]) {
     running.value = true
     failure.value = null
