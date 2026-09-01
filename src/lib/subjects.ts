@@ -22,6 +22,20 @@ export function shortDate(iso: string): string {
   return `${day}/${month}`
 }
 
+const MONTH_NAMES = [
+  'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno',
+  'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre',
+]
+
+export function monthName(iso: string): string {
+  return MONTH_NAMES[Number(iso.split('-')[1]) - 1] ?? ''
+}
+
+/** Day number without a leading zero: "2024-09-16" -> "16". */
+export function dayNumber(iso: string): string {
+  return String(Number(iso.split('-')[2]))
+}
+
 /** "pino-palloncino" -> "Pino Palloncino". Ids arrive slugged from the data layer. */
 export function personName(id: string): string {
   return id.replace(/-/g, ' ').replace(/(^|\s)(\p{Ll})/gu, (_, gap, letter) => gap + letter.toUpperCase())

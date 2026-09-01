@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { shortDate } from '@/lib/subjects'
+import { dayNumber, monthName } from '@/lib/subjects'
 
 /**
  * The fourteen weeks as a strip of segments: navigation and diagnosis in one control.
@@ -16,6 +16,22 @@ const props = defineProps<{
 const emit = defineEmits<{ select: [index: number] }>()
 
 const tallest = computed(() => Math.max(...props.weeks.map((w) => w.hours), 1))
+
+/**
+ * Il mese si scrive per esteso solo quando cambia. Ripeterlo su tutte e quattordici le settimane
+ * riempirebbe la spina di parole identiche; scritto una volta, marca il passaggio da un mese
+ * all'altro e le altre settimane restano un numero leggibile a colpo d'occhio.
+ */
+const etichette = computed(() =>
+  props.weeks.map((week, indice) => {
+    const precedente = props.weeks[indice - 1]?.firstDate
+    const cambiaMese = !precedente || monthName(precedente) !== monthName(week.firstDate)
+    return {
+      giorno: week.firstDate ? dayNumber(week.firstDate) : '',
+      mese: cambiaMese && week.firstDate ? monthName(week.firstDate) : '',
+    }
+  })
+)
 </script>
 
 <template>
@@ -42,10 +58,13 @@ const tallest = computed(() => Math.max(...props.weeks.map((w) => w.hours), 1))
           :class="week.index === current ? 'bg-signal' : 'bg-rail/40 group-hover:bg-signal/60'"
         />
         <span
-          class="mt-1 block font-mono text-[9px]"
+          class="mt-1 block truncate font-mono text-[9px]"
           :class="week.index === current ? 'text-ink' : 'text-ink-soft'"
         >
-          {{ shortDate(week.firstDate).slice(0, 2) }}
+          {{ etichette[week.index].giorno }}
+          <span v-if="etichette[week.index].mese" class="text-ink">
+            {{ etichette[week.index].mese }}
+          </span>
         </span>
       </button>
     </div>
