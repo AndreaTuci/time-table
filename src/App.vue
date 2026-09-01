@@ -2,11 +2,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import CoverageGauge from '@/features/schedule/CoverageGauge.vue'
-import SubjectFilter from '@/features/schedule/SubjectFilter.vue'
+import FilterSwitches from '@/features/schedule/FilterSwitches.vue'
 import TimetableBoard from '@/features/schedule/TimetableBoard.vue'
 import TitleBlock from '@/features/schedule/TitleBlock.vue'
 import WeekSpine from '@/features/schedule/WeekSpine.vue'
 import { railLayout } from '@/features/schedule/geometry'
+import type { BoardDay } from '@/features/schedule/types'
 import { useScheduleGenerator } from '@/composables/useScheduleGenerator'
 import { personName, subjectColours } from '@/lib/subjects'
 import dataset from '../data/dataset-demo.json'
@@ -23,7 +24,14 @@ const layout = railLayout(slots, usableSlots, lunchSlot)
 const classes = Object.keys(dataset.classi)
 const subjects = Object.keys(dataset.corsi)
 const colours = subjectColours(subjects)
+
+/*
+ * Two filters that behave differently on purpose. Hiding a subject DIMS its hours, because an
+ * hour that vanished would read as a free hour and the class is in fact busy. Hiding a class
+ * REMOVES its column, because a column that is not drawn claims nothing about anybody.
+ */
 const visibleSubjects = ref<string[]>([...subjects])
+const visibleClasses = ref<string[]>([...classes])
 const homeRooms = Object.fromEntries(
   Object.entries(dataset.classi).map(([name, info]) => [name, info.aula_casa])
 )
@@ -34,6 +42,20 @@ const requiredHours = computed(() =>
 )
 
 const calendar = computed(() => result.value?.calendario)
+
+/**
+ * The week's columns: teaching days and closures together, in weekday order.
+ * A closed day used to be simply absent, which turned the week of the 1st of November into a
+ * normal-looking four-day week with hours that had gone missing for no visible reason.
+ */
+const boardDays = computed<BoardDay[]>(() => {
+  const teaching = weekDays.value.map((day) => ({ data: day.data, indiceGiorno: day.indiceGiorno }))
+  const closed = (calendar.value?.esclusi ?? [])
+    .filter((day) => day.settimana === week.value)
+    .map((day) => ({ data: day.data, indiceGiorno: day.indiceGiorno, closedFor: day.motivo }))
+  return [...teaching, ...closed].sort((a, b) => a.indiceGiorno - b.indiceGiorno)
+})
+
 const period = computed(() => {
   const days = calendar.value?.giorni ?? []
   return { from: days[0]?.data ?? '', to: days[days.length - 1]?.data ?? '', total: days.length }
@@ -108,22 +130,35 @@ onMounted(() => generate(dataset, closures))
 
       <WeekSpine :weeks="weekSummaries" :current="week" @select="week = $event" />
 
-      <SubjectFilter v-model="visibleSubjects" :subjects="subjects" :colours="colours" />
+      <div class="space-y-1.5 border border-line-strong bg-panel px-3 py-2">
+        <FilterSwitches v-model="visibleClasses" label="classi" :items="classes" />
+        <FilterSwitches
+          v-model="visibleSubjects"
+          label="materie"
+          :items="subjects"
+          :colours="colours"
+        />
+      </div>
 
       <TimetableBoard
+        v-if="visibleClasses.length"
         :lessons="weekLessons"
-        :days="weekDays"
-        :classes="classes"
+        :days="boardDays"
+        :classes="visibleClasses"
+        :class-count="classes.length"
         :home-rooms="homeRooms"
         :layout="layout"
         :colours="colours"
         :slots="slots"
         :visible-subjects="visibleSubjects"
       />
+      <p v-else class="border border-line-strong bg-panel px-3 py-8 text-center text-[11px] text-ink-soft">
+        Nessuna classe selezionata. Riaccendine una qui sopra per vedere la settimana.
+      </p>
 
       <div class="grid gap-3 md:grid-cols-3">
         <section
-          v-for="className in classes"
+          v-for="className in visibleClasses"
           :key="className"
           class="border border-line-strong bg-panel p-3"
         >
@@ -160,7 +195,7 @@ onMounted(() => generate(dataset, closures))
 
       <p v-if="closedDays.length" class="font-mono text-[10px] text-ink-soft">
         chiusure nel periodo:
-        {{ closedDays.map((d) => `${d.data} (${d.motivo})`).join(' · ') }}
+        {{ closedDays.map((day) => `${day.data} — ${day.motivo}`).join(' · ') }}
       </p>
     </div>
   </div>
