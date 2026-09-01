@@ -10,30 +10,33 @@
  * interruption of that rail rather than a grey row.
  *
  * The interface owns no saturated hue. Every strong colour on screen belongs to a subject, so
- * colour always carries data. That is also why subject hues barely shift between themes: they
- * are an identity, not a mood.
+ * colour always carries data.
+ *
+ * Light only, deliberately. A dark schedule reads as a developer tool; this one is meant for a
+ * school office, and the cabinet grey is kept pale so the board feels like paper on a bench
+ * rather than a monitoring dashboard.
  */
 @theme {
   --font-display: 'Archivo', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', monospace;
 
-  /* Cabinet */
-  --color-frame: #d3d8d3;
-  --color-panel: #f7f8f6;
-  --color-sunken: #e7eae6;
-  --color-rail: #7c857e;
+  /* Cabinet, pale: painted sheet metal seen in a bright room. */
+  --color-frame: #e6e9e3;
+  --color-panel: #ffffff;
+  --color-sunken: #f1f3ed;
+  --color-rail: #8d968e;
 
   /* Ink */
-  --color-ink: #16211f;
-  --color-ink-soft: #5a6560;
-  --color-line: #b9c0b9;
-  --color-line-strong: #99a29b;
+  --color-ink: #1b241f;
+  --color-ink-soft: #626d66;
+  --color-line: #d8dcd4;
+  --color-line-strong: #b3bab3;
 
   /* Status. Steel blue, never a brand colour: it marks interaction, not identity. */
-  --color-signal: #2c5a78;
+  --color-signal: #2f6690;
   --color-valid: #2f6b45;
   --color-fault: #a32b22;
-  --color-caution: #a8721b;
+  --color-caution: #96690f;
 }
 
 /*
@@ -41,7 +44,7 @@
  * by subject, not through utility classes: any dataset can declare any number of subjects.
  */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   --subject-1: #1d5fbf;
   --subject-2: #c4571b;
   --subject-3: #1f7a4d;
@@ -50,32 +53,6 @@
   --subject-6: #0f7385;
   --subject-7: #5e7a16;
   --subject-8: #a32268;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-frame: #1a1f1e;
-    --color-panel: #232927;
-    --color-sunken: #1c2220;
-    --color-rail: #69726c;
-    --color-ink: #e4e9e4;
-    --color-ink-soft: #97a099;
-    --color-line: #333a37;
-    --color-line-strong: #4a524d;
-    --color-signal: #6fa8cc;
-    --color-valid: #4fbf80;
-    --color-fault: #e5776b;
-    --color-caution: #d9a441;
-
-    --subject-1: #6ba4f0;
-    --subject-2: #f0904c;
-    --subject-3: #4fc389;
-    --subject-4: #a983e0;
-    --subject-5: #ef7d75;
-    --subject-6: #3fb6c8;
-    --subject-7: #a9c94e;
-    --subject-8: #e069a6;
-  }
 }
 
 body {
