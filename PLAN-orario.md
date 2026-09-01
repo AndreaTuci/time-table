@@ -9,8 +9,8 @@
 - [~] Phase P4.1 — Tema chiaro e filtro materie — *in attesa di verifica*
 - [x] Phase P5 — Pagine entita': docenti, corsi, classi, aule (sola lettura)
 - [x] Phase P6 — Editing su localStorage
-- [~] Phase P6.1 — Diagnostica pre-volo e isolamento della classe impossibile — *da verificare*
-- [ ] Phase P7 — Export CSV
+- [x] Phase P6.1 — Diagnostica pre-volo e isolamento della classe impossibile
+- [~] Phase P7 — Export CSV — *da verificare*
 - [ ] Phase P8 — Assenze, sostituzioni e recuperi in interfaccia
 - [ ] Phase P9 — Deploy Cloudflare Pages + README
 - [ ] Phase P10 — Rimessa in riga: rinomina in inglese, split dei file lunghi
@@ -194,11 +194,23 @@ la ricerca. E' il verso giusto in cui sbagliare.
       dataset di esempio e la garanzia che una classe impossibile non danneggi le altre.
 
 ## Phase P7 — Export CSV
-**Il documento principale sono i DATI A MONTE**, non l'orario: l'utente vuole mostrare cosa e'
-entrato nel generatore, perche' e' quello che rende verificabile cio' che ne e' uscito.
-- [ ] Dati di ingresso: docenti con disponibilita', corsi, classi, aule, chiusure.
-- [ ] Orario completo, una riga per ora.
-- [ ] Orario per classe, in forma di griglia.
+**Il documento principale sono i DATI A MONTE**, non l'orario: serve mostrare cosa e' entrato nel
+generatore, perche' e' quello che rende verificabile cio' che ne e' uscito.
+
+### Scelte
+- Separatore `;` e BOM in testa: chi apre questi file lo fa con Excel in italiano, che con la
+  virgola ammassa tutto in una colonna e senza BOM sbaglia gli accenti.
+- Nessuna dipendenza: niente ZIP, niente libreria CSV. Un bottone per file.
+- La composizione del CSV e' pura e testabile; il DOM sta in un modulo a parte.
+
+### Files
+- [x] `src/features/export/csv.ts` — `toCsv` con protezione di separatori, virgolette e a capo.
+- [x] `src/features/export/inputCsv.ts` — docenti (una riga per docente e giorno), corsi, classi,
+      aule, chiusure.
+- [x] `src/features/export/scheduleCsv.ts` — orario completo (una riga per ora) e griglia per classe.
+- [x] `src/features/export/download.ts` — la parte che tocca il DOM, isolata.
+- [x] `src/features/export/ExportPage.vue` — scheda "dati", ingresso in cima e uscita sotto.
+- [x] `src/features/export/csv.test.ts` — 11 test.
 
 ## Phase P8 — Assenze, sostituzioni e recuperi in interfaccia
 Il motore (`src/engine/sostituzioni.ts`) e' gia' scritto, **non e' collegato a nulla e non ha test**.
