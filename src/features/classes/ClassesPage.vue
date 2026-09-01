@@ -24,6 +24,8 @@ const cards = computed(() =>
       oreAlGiorno: days.length > 0 ? lessons.length / days.length : 0,
       copertura: props.result.copertura.filter((row) => row.classe === classe.id),
       titolari: props.result.titolari.filter((t) => t.classe === classe.id),
+      // Una classe esclusa non ha zero ore per caso: la diagnostica l'ha dichiarata impossibile.
+      esclusa: props.result.classiEscluse.includes(classe.id),
     }
   })
 )
@@ -37,8 +39,9 @@ const cards = computed(() =>
       class="space-y-3 border border-line-strong bg-panel p-3"
     >
       <div class="flex items-baseline justify-between">
-        <span class="legend text-[12px]">{{ card.id }}</span>
-        <span class="font-mono text-[9.5px] text-ink-soft">aula {{ card.aulaCasa }}</span>
+        <span class="legend text-[12px]" :class="card.esclusa && 'text-fault'">{{ card.id }}</span>
+        <span v-if="card.esclusa" class="font-mono text-[9.5px] text-fault">non pianificabile</span>
+        <span v-else class="font-mono text-[9.5px] text-ink-soft">aula {{ card.aulaCasa }}</span>
       </div>
 
       <dl class="grid grid-cols-2 gap-x-3 gap-y-1.5 border-y border-line py-2 font-mono text-[10px]">

@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import AppTabs from '@/features/shell/AppTabs.vue'
+import DiagnosticsPanel from '@/features/shell/DiagnosticsPanel.vue'
 import ClassesPage from '@/features/classes/ClassesPage.vue'
 import CoursesPage from '@/features/courses/CoursesPage.vue'
 import RoomsPage from '@/features/rooms/RoomsPage.vue'
@@ -76,6 +77,13 @@ onMounted(run)
         </Button>
       </div>
     </header>
+
+    <DiagnosticsPanel
+      v-if="result && !running"
+      class="mb-2"
+      :problems="result.diagnostica"
+      :excluded="result.classiEscluse"
+    />
 
     <AppTabs v-model="tab" :tabs="TABS" />
 
