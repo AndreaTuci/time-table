@@ -11,7 +11,8 @@
 - [x] Phase P6 — Editing su localStorage
 - [x] Phase P6.1 — Diagnostica pre-volo e isolamento della classe impossibile
 - [x] Phase P7 — Export CSV
-- [~] Phase P8 — Assenze, sostituzioni e recuperi in interfaccia — *da verificare*
+- [x] Phase P8 — Assenze, sostituzioni e recuperi in interfaccia
+- [~] Phase P8.1 — Applicare le variazioni all'orario — *da verificare*
 - [ ] Phase P9 — Deploy Cloudflare Pages + README
 - [ ] Phase P10 — Rimessa in riga: rinomina in inglese, split dei file lunghi
 
