@@ -15,6 +15,9 @@ export interface GiornoUtile {
 export interface GiornoEscluso {
   data: string
   motivo: string
+  /** Dove cade nella griglia settimanale: senza questo l'interfaccia non puo' disegnarlo. */
+  indiceGiorno: IndiceGiorno
+  settimana: number
 }
 
 export interface Calendario {
@@ -77,7 +80,7 @@ export function calendarioDi(
     ultimoIndice = indiceGiorno
 
     const motivo = festive.get(data) ?? chiuso.get(data)
-    if (motivo) esclusi.push({ data, motivo })
+    if (motivo) esclusi.push({ data, motivo, indiceGiorno, settimana })
     else giorni.push({ data, indiceGiorno, settimana })
   }
 

@@ -21,7 +21,16 @@ describe('calendarioDi', () => {
   })
 
   it('esclude Ognissanti e nessun altro giorno in quella finestra', () => {
-    expect(calendario.esclusi).toEqual([{ data: '2024-11-01', motivo: 'Ognissanti' }])
+    expect(calendario.esclusi).toEqual([
+      { data: '2024-11-01', motivo: 'Ognissanti', indiceGiorno: 4, settimana: 6 },
+    ])
+  })
+
+  it('colloca il giorno escluso nella settimana giusta, accanto ai suoi giorni utili', () => {
+    const [ognissanti] = calendario.esclusi
+    const stessaSettimana = calendario.giorni.filter((g) => g.settimana === ognissanti.settimana)
+    expect(stessaSettimana).toHaveLength(4)
+    expect(stessaSettimana.map((g) => g.indiceGiorno)).toEqual([0, 1, 2, 3])
   })
 
   it('non produce mai sabati o domeniche', () => {
