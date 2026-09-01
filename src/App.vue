@@ -19,7 +19,9 @@ import {
   resetToExample,
   revision,
   storageAvailable,
+  variazioni,
 } from '@/data/store'
+import { applicaVariazioni } from '@/features/absences/variazioni'
 import { subjectColours } from '@/lib/subjects'
 
 const TABS = [
@@ -44,6 +46,16 @@ const builtFrom = ref(-1)
 const stale = computed(() => !!result.value && builtFrom.value !== revision.value)
 
 const model = computed(() => modelState.value.model)
+
+/**
+ * L'orario come lo si vede: quello generato, piu' i ritocchi fatti a mano. Calcolato in un punto
+ * solo e passato a tutte le pagine, cosi' griglia, assenze ed esportazioni non possono divergere.
+ */
+const orario = computed(() =>
+  result.value
+    ? { ...result.value, lezioni: applicaVariazioni(result.value.lezioni, variazioni) }
+    : null
+)
 const colours = computed(() => subjectColours(model.value ? Object.keys(model.value.materie) : []))
 const blockingProblems = computed(() =>
   modelState.value.problems.length ? modelState.value.problems : dataProblems.value
@@ -71,7 +83,7 @@ onMounted(run)
   <div class="min-h-screen px-4 py-3">
     <header class="mb-2 flex flex-wrap items-center gap-3">
       <h1 class="legend text-[13px]">Quadro orario</h1>
-      <span class="font-mono text-[10px] text-ink-soft">centro di formazione professionale</span>
+      <span class="font-mono text-[10px] text-ink-soft"></span>
       <div class="ml-auto flex items-center gap-2">
         <Button v-if="edited" variant="ghost" size="sm" @click="restore">
           ripristina i dati di esempio
@@ -151,14 +163,14 @@ onMounted(run)
         <Button class="mt-4" @click="restore">ripristina i dati di esempio</Button>
       </div>
 
-      <template v-else-if="result && model">
-        <SchedulePage v-if="tab === 'orario'" :model="model" :result="result" :colours="colours" />
-        <TeachersPage v-else-if="tab === 'docenti'" :model="model" :result="result" :colours="colours" />
-        <CoursesPage v-else-if="tab === 'corsi'" :model="model" :result="result" :colours="colours" />
-        <ClassesPage v-else-if="tab === 'classi'" :model="model" :result="result" :colours="colours" />
-        <RoomsPage v-else-if="tab === 'aule'" :model="model" :result="result" :colours="colours" />
-        <AbsencePage v-else-if="tab === 'assenze'" :model="model" :result="result" :colours="colours" />
-        <ExportPage v-else-if="tab === 'dati'" :model="model" :result="result" />
+      <template v-else-if="orario && model">
+        <SchedulePage v-if="tab === 'orario'" :model="model" :result="orario" :colours="colours" />
+        <TeachersPage v-else-if="tab === 'docenti'" :model="model" :result="orario" :colours="colours" />
+        <CoursesPage v-else-if="tab === 'corsi'" :model="model" :result="orario" :colours="colours" />
+        <ClassesPage v-else-if="tab === 'classi'" :model="model" :result="orario" :colours="colours" />
+        <RoomsPage v-else-if="tab === 'aule'" :model="model" :result="orario" :colours="colours" />
+        <AbsencePage v-else-if="tab === 'assenze'" :model="model" :result="orario" :colours="colours" />
+        <ExportPage v-else-if="tab === 'dati'" :model="model" :result="orario" />
       </template>
     </main>
   </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { LezionePersa } from '@/engine/sostituzioni'
+import { Button } from '@/components/ui/button'
 import { personName, shortDate, weekdayLabel } from '@/lib/subjects'
 import type { Modello } from '@/engine/types'
 
@@ -10,9 +11,13 @@ import type { Modello } from '@/engine/types'
  * Non sono alternative da classificare in migliore e peggiore, sono due decisioni diverse: il
  * sostituto salva l'ora dov'era e non tocca nient'altro, il recupero sposta la lezione tenendo il
  * titolare. Quale convenga lo sa la scuola, non il motore — quindi si mostrano entrambe con il
- * loro costo, e nessuna delle due viene applicata da sola.
+ * loro costo, e si applica quella che si sceglie.
  */
 const props = defineProps<{ persa: LezionePersa; model: Modello; colour: string }>()
+const emit = defineEmits<{
+  sostituisci: [docente: string]
+  recupera: [indice: number]
+}>()
 
 const orario = computed(() => {
   const slot = props.persa.blocco.slot
@@ -49,12 +54,15 @@ const fascia = (slot: number[]) =>
           <li
             v-for="sostituto in persa.sostituti"
             :key="sostituto.docente"
-            class="flex items-baseline justify-between gap-2 text-[11px]"
+            class="flex items-center justify-between gap-2 text-[11px]"
           >
-            <span class="truncate">{{ personName(sostituto.docente) }}</span>
+            <span class="min-w-0 flex-1 truncate">{{ personName(sostituto.docente) }}</span>
             <span class="shrink-0 font-mono text-[9.5px] text-ink-soft">
               {{ sostituto.oreQuellaSettimana }}h quel giorno
             </span>
+            <Button size="sm" class="shrink-0" @click="emit('sostituisci', sostituto.docente)">
+              applica
+            </Button>
           </li>
         </ul>
         <p v-else class="text-[11px] text-ink-soft">
@@ -66,11 +74,11 @@ const fascia = (slot: number[]) =>
         <h3 class="legend mb-1.5 text-[9px] text-ink-soft">quando recuperarla, con lo stesso docente</h3>
         <ul v-if="persa.recuperi.length" class="space-y-1">
           <li
-            v-for="recupero in persa.recuperi"
+            v-for="(recupero, indice) in persa.recuperi"
             :key="recupero.data + recupero.slot[0]"
-            class="flex items-baseline justify-between gap-2 text-[11px]"
+            class="flex items-center justify-between gap-2 text-[11px]"
           >
-            <span class="truncate">
+            <span class="min-w-0 flex-1 truncate">
               {{ weekdayLabel(recupero.indiceGiorno) }}
               {{ shortDate(recupero.data) }}
               <span class="font-mono text-[9.5px] text-ink-soft">{{ fascia(recupero.slot) }}</span>
@@ -78,6 +86,7 @@ const fascia = (slot: number[]) =>
             <span class="shrink-0 font-mono text-[9.5px] text-ink-soft">
               +{{ recupero.giorniDiDistanza }} gg · {{ recupero.aula }}
             </span>
+            <Button size="sm" class="shrink-0" @click="emit('recupera', indice)">applica</Button>
           </li>
         </ul>
         <p v-else class="text-[11px] text-ink-soft">
