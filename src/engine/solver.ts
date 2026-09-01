@@ -181,7 +181,6 @@ export function generaOrario(modello: Modello, opzioni: OpzioniGenerazione = {})
             materia: blocco.materia,
             docente: blocco.docente,
             aula: blocco.aula,
-            fuoriTemplate: false,
           })
         }
       }

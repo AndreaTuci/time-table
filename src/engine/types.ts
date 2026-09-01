@@ -72,8 +72,11 @@ export interface Lezione {
   materia: string
   docente: string
   aula: string
-  /** Vero se nata dalla coda di riequilibrio e non dall'orario tipo. */
-  fuoriTemplate: boolean
+  /**
+   * Presente solo sulle lezioni ritoccate a mano dopo la generazione: un docente sostituito,
+   * oppure una lezione spostata a recupero. Il motore non la valorizza mai.
+   */
+  variazione?: 'sostituzione' | 'recupero'
 }
 
 /** Un blocco dell'orario tipo settimanale: la stessa lezione ripetuta ogni settimana. */
