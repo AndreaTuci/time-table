@@ -10,8 +10,8 @@
 - [x] Phase P5 — Pagine entita': docenti, corsi, classi, aule (sola lettura)
 - [x] Phase P6 — Editing su localStorage
 - [x] Phase P6.1 — Diagnostica pre-volo e isolamento della classe impossibile
-- [~] Phase P7 — Export CSV — *da verificare*
-- [ ] Phase P8 — Assenze, sostituzioni e recuperi in interfaccia
+- [x] Phase P7 — Export CSV
+- [~] Phase P8 — Assenze, sostituzioni e recuperi in interfaccia — *da verificare*
 - [ ] Phase P9 — Deploy Cloudflare Pages + README
 - [ ] Phase P10 — Rimessa in riga: rinomina in inglese, split dei file lunghi
 
@@ -213,9 +213,18 @@ generatore, perche' e' quello che rende verificabile cio' che ne e' uscito.
 - [x] `src/features/export/csv.test.ts` — 11 test.
 
 ## Phase P8 — Assenze, sostituzioni e recuperi in interfaccia
-Il motore (`src/engine/sostituzioni.ts`) e' gia' scritto, **non e' collegato a nulla e non ha test**.
-- [ ] Test del motore sostituzioni.
-- [ ] Pannello: scegli docente e giorno -> lezioni saltate -> sostituto oppure recupero.
+Era la richiesta con cui l'utente ha aperto il lavoro. Il motore era scritto da tempo ma **non era
+mai stato eseguito**: i test hanno scoperto subito un difetto.
+
+- [x] `src/engine/sostituzioni.test.ts` — 8 test. Uno ha trovato il bug: i recuperi venivano
+      proposti a cavallo della pausa pranzo (slot 4 e poi 6), perche' il modulo era stato scritto
+      prima che il motore vietasse lo scavalcamento. Corretto con lo stesso controllo del solver.
+- [x] `Recupero.indiceGiorno` — il giorno della settimana viene dal motore invece di essere
+      ricavato dalla data dentro il template.
+- [x] `src/features/absences/AbsencePage.vue` — scegli docente e giorno, vedi cosa salta.
+- [x] `src/features/absences/LostLessonCard.vue` — le due uscite affiancate: sostituto sul posto
+      oppure recupero con lo stesso titolare. **Nessuna delle due viene applicata**: la domanda e'
+      "che cosa succede se", e la scelta e' della scuola.
 
 ## Phase P5 — Assenze, sostituzioni e recuperi
 - [ ] `src/engine/sostituzioni.ts` — chi puo' sostituire, dove si recupera.

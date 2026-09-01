@@ -146,3 +146,14 @@ Il panel lanciato per derivare questi controlli e' stato fermato: i suoi agenti 
 scrivevano i controesempi come file dentro il repo (`_contro.ts`, `contro4.test.ts`,
 `zz-attacco*.test.ts`, `data/contro-esempio-4.json`). Rimossi. I controlli sono stati progettati
 direttamente. L'utente ha inoltre stabilito che **i panel non si lanciano di iniziativa**.
+
+## Phase P8 — il bug che dormiva
+
+`sostituzioni.ts` era stato scritto in P2 e non era mai stato eseguito: nessun test, nessun uso.
+Nel frattempo il motore aveva vietato alle lezioni di scavalcare la pausa pranzo, ma quel modulo
+era rimasto alla vecchia regola. I recuperi venivano proposti sugli slot 4 e 6 — le 12-13 seguite
+dalle 14-15 — cioe' esattamente due ore isolate spacciate per una lezione da due ore.
+
+La lezione da portarsi dietro: il codice scritto e non eseguito invecchia in silenzio. Il modulo
+non era rotto quando l'ho scritto; lo e' diventato quando ho cambiato le regole altrove, e senza
+un test nessuno poteva accorgersene.
